@@ -746,11 +746,12 @@ export class Window extends Events {
         // })
     }
 
-    _getResizingState(event) {
-        const up = Math.abs(event.pageY - this.y) < 13;
-        const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
-        const left = Math.abs(event.pageX - this.x) < 13;
-        const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
+    _getHitTestState(event, prevResizingState) {
+        const offset = prevResizingState ? 10000 : 10;
+        const up = Math.abs(event.pageY - this.y) < offset;
+        const down = Math.abs(event.pageY - (this.y + this.height)) < offset;
+        const left = Math.abs(event.pageX - this.x) < offset;
+        const right = Math.abs(event.pageX - (this.x + this.width)) < offset;
 
         let horizontal;
         let vertical;
@@ -771,29 +772,31 @@ export class Window extends Events {
             horizontal = null;
         }
 
-        return {
-            horizontal,
-            vertical,
-        }
+        if (horizontal || vertical)
+            return prevResizingState || {
+                horizontal,
+                vertical,
+            }
+        else if (
+            event.pageX >= this.x &&
+            event.pageX <= (this.x + this.width) &&
+            event.pageY >= this.y &&
+            event.pageY <= (this.y + this.height)
+        ) return {};
 
-        // if (this.verticalResize || this.horizontalResize) {
-        //     const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
-        //     if (this.win.className.includes(RESIZE_PREFIX))
-        //         this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
-        //     else
-        //         this.win.className += ` ${newClass}`;
-        // } else {
-        //     this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
-        // }
 
-        // this.emit('resize-start');
-        // e.preventDefault();
+        return null;
     }
 
     _move = (e) => {
-
         const event = this._convertMoveEvent(e)
-        const resizingState = this._getResizingState(event);
+        const resizingState = this._getHitTestState(event, this._resizing);
+
+        if (resizingState == null) {
+            this._prevPosition = null;
+            return;
+        }
+
         if (resizingState.horizontal || resizingState.vertical) {
             if (!this._resizing)
                 this.emit('resize-start');
@@ -809,14 +812,14 @@ export class Window extends Events {
             // e.preventDefault();
         } else {
             // this._prevPosition = null; // todo clear
+            this._moving = true;
             this._stopResize();
             this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
-            return;
         }
 
         const dx = this._prevPosition ? event.pageX - this._prevPosition.x : null;
         const dy = this._prevPosition ? event.pageY - this._prevPosition.y : null;
-        console.log('_move', dx, dy);
+        // console.log('_move', dx, dy);
 
         this._prevPosition = {
             x: event.pageX,
@@ -836,24 +839,40 @@ export class Window extends Events {
             }
         }
 
-        const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
-        const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
+        console.log(JSON.stringify(resizingState))
+        if (this._resizing) {
 
-        if (this._moving) {
-            this.move(this.x + dx * xMutiplier, this.y + dy * yMutiplier);
+            const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
+            const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
+
+            // console.log('move', dx, dy);
+            this.move(
+                resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
+                resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
+            );
+        } else if (this._moving) {
+            this.move(
+                this.x + dx,
+                this.y + dy,
+            );
+
             this.emit('move', this)
             e.preventDefault()
         }
 
         if (this._resizing) {
-
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? -1 : 1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? -1 : 1;
 
-            this.resize(this.width + dx * xMutiplier, this.height + dy * yMutiplier);
-            this.maximized = null
-            this.emit('resize', this)
-            e.preventDefault()
+            // this.width + dx * xMutiplier;
+            this.resize(
+                resizingState.horizontal ? this.width + dx * xMutiplier : this.width,
+                resizingState.vertical ? this.height + dy * yMutiplier : this.height,
+            );
+
+            this.maximized = null;
+            this.emit('resize', this);
+            e.preventDefault();
         }
     }
 
