@@ -52,6 +52,7 @@ export class Window extends Events {
         this._closed = true
         this._restore = null
         this._moving = null
+        this._prevPosition = null
         this._resizing = null
         this._attachedToScreen = { vertical: '', horziontal: '' }
         this.verticalResize = false;
@@ -538,8 +539,8 @@ export class Window extends Events {
     _downTitlebar(e) {
         const event = this._convertMoveEvent(e)
         this._moving = {
-            x: event.pageX - this.x,
-            y: event.pageY - this.y
+            x: event.pageX,
+            y: event.pageY,
         }
         this.emit('move-start', this)
         this._moved = false
@@ -658,80 +659,173 @@ export class Window extends Events {
         //     },
         //     className: this.options.classNames.resizeEdge
         // })
-        const resize = e => {
-            const event = this._convertMoveEvent(e)
-            const width = this.width || this.win.offsetWidth
-            const height = this.height || this.win.offsetHeight
-            const newWidth = Math.abs(width - event.pageX);
-            const newHeight = Math.abs(height - event.pageY);
+        // const resize = e => {
+        //     if (!this.verticalResize && !this.horizontalResize)
+        //         return;
 
-            this._resizing = {
-                width: newWidth,
-                height: newHeight,
-            }
+        //     const event = this._convertMoveEvent(e);
+        //     // const width = this.width || this.win.offsetWidth;
+        //     // const height = this.height || this.win.offsetHeight;
+        //     // const newWidth = width - event.pageX;
+        //     // const newHeight = height - event.pageY;
 
-            let x = null;
-            let y = null;
+        //     // this._resizing = {
+        //     //     width: newWidth,
+        //     //     height: newHeight,
+        //     // }
 
-            if (this.horizontalResize === ResizeDirections.Left) {
-                x = this.x - (newWidth - width);
-                console.log('x', x);
-            }
+        //     // this._resizing = {
+        //     //     height: event.pageY,
+        //     //     width: event.pageX,
+        //     // };
 
-            if (this.horizontalResize === ResizeDirections.Top) {
-                y = this.y - (newHeight - height);
-                console.log('y', y);
-            }
+        //     // let x = null;
+        //     // let y = null;
 
-            // this._moving = { x, y };
+        //     if (this.horizontalResize === ResizeDirections.Left || this.horizontalResize === ResizeDirections.Top) {
+        //         // x = event.pageX - this.x;
+        //         this._moving = {
+        //             x: event.pageX,
+        //             y: event.pageY,
+        //         }
 
-            this.emit('resize-start')
-            e.preventDefault()
-        }
+        //     }
 
-        this.winBox.addEventListener('mousedown', resize)
-        this.winBox.addEventListener('touchstart', resize)
-        this.winBox.addEventListener('mousemove', (e) => {
-            const event = this._convertMoveEvent(e)
-            const up = Math.abs(event.pageY - this.y) < 13;
-            const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
-            const left = Math.abs(event.pageX - this.x) < 13;
-            const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
+        //     // if (this.horizontalResize === ResizeDirections.Top) {
+        //     //     // y = event.pageY - this.y;
+        //     // }
 
-            if (up) {
-                this.verticalResize = ResizeDirections.Up;
-            } else if (down) {
-                this.verticalResize = ResizeDirections.Down;
-            } else {
-                this.verticalResize = null;
-            }
+        //     // // this._moving = {
+        //     // //     x: event.pageX - this.x,
+        //     // //     y: event.pageY - this.y
+        //     // // }
 
-            if (left) {
-                this.horizontalResize = ResizeDirections.Left;
-            } else if (right) {
-                this.horizontalResize = ResizeDirections.Right;
-            } else {
-                this.horizontalResize = null;
-            }
+        //     // // this._moving = { x, y };
+        //     this.emit('resize-start');
+        //     e.preventDefault();
+        // }
 
-            if (this.verticalResize || this.horizontalResize) {
-                const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
-                if (this.win.className.includes(RESIZE_PREFIX))
-                    this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
-                else
-                    this.win.className += ` ${newClass}`;
-            } else {
-                this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
-            }
+        // this.winBox.addEventListener('mousedown', resize)
+        // this.winBox.addEventListener('touchstart', resize)
+        // this.winBox.addEventListener('mousemove', (e) => {
+        //     const event = this._convertMoveEvent(e)
+        //     const up = Math.abs(event.pageY - this.y) < 13;
+        //     const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
+        //     const left = Math.abs(event.pageX - this.x) < 13;
+        //     const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
 
-            // console.log('down', this.win.className);
-            this.emit('resize-start');
-            e.preventDefault();
-        })
+        //     if (up) {
+        //         this.verticalResize = ResizeDirections.Up;
+        //     } else if (down) {
+        //         this.verticalResize = ResizeDirections.Down;
+        //     } else {
+        //         this.verticalResize = null;
+        //     }
+
+        //     if (left) {
+        //         this.horizontalResize = ResizeDirections.Left;
+        //     } else if (right) {
+        //         this.horizontalResize = ResizeDirections.Right;
+        //     } else {
+        //         this.horizontalResize = null;
+        //     }
+
+        //     if (this.verticalResize || this.horizontalResize) {
+        //         const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
+        //         if (this.win.className.includes(RESIZE_PREFIX))
+        //             this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+        //         else
+        //             this.win.className += ` ${newClass}`;
+        //     } else {
+        //         this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+        //     }
+
+        //     // console.log('down', this.win.className);
+        //     this.emit('resize-start');
+        //     e.preventDefault();
+        // })
     }
 
-    _move(e) {
+    _getResizingState(event) {
+        const up = Math.abs(event.pageY - this.y) < 13;
+        const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
+        const left = Math.abs(event.pageX - this.x) < 13;
+        const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
+
+        let horizontal;
+        let vertical;
+
+        if (up) {
+            vertical = ResizeDirections.Up;
+        } else if (down) {
+            vertical = ResizeDirections.Down;
+        } else {
+            vertical = null;
+        }
+
+        if (left) {
+            horizontal = ResizeDirections.Left;
+        } else if (right) {
+            horizontal = ResizeDirections.Right;
+        } else {
+            horizontal = null;
+        }
+
+        return {
+            horizontal,
+            vertical,
+        }
+
+        // if (this.verticalResize || this.horizontalResize) {
+        //     const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
+        //     if (this.win.className.includes(RESIZE_PREFIX))
+        //         this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+        //     else
+        //         this.win.className += ` ${newClass}`;
+        // } else {
+        //     this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+        // }
+
+        // this.emit('resize-start');
+        // e.preventDefault();
+    }
+
+    _move = (e) => {
+
         const event = this._convertMoveEvent(e)
+        const resizingState = this._getResizingState(event);
+        if (resizingState.horizontal || resizingState.vertical) {
+            if (!this._resizing)
+                this.emit('resize-start');
+
+            this._resizing = resizingState;
+
+            const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
+            if (this.win.className.includes(RESIZE_PREFIX))
+                this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+            else
+                this.win.className += ` ${newClass}`;
+
+            // e.preventDefault();
+        } else {
+            // this._prevPosition = null; // todo clear
+            this._stopResize();
+            this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+            return;
+        }
+
+        const dx = this._prevPosition ? event.pageX - this._prevPosition.x : null;
+        const dy = this._prevPosition ? event.pageY - this._prevPosition.y : null;
+        console.log('_move', dx, dy);
+
+        this._prevPosition = {
+            x: event.pageX,
+            y: event.pageY,
+        }
+
+        if (dx == null || dy == null) {
+            return;
+        }
 
         if (!this._isTouchEvent(e) && e.which !== 1) {
             if (this._moving) {
@@ -741,16 +835,22 @@ export class Window extends Events {
                 this._stopResize()
             }
         }
+
+        const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
+        const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
+
         if (this._moving) {
-            this.move(event.pageX - this._moving.x, event.pageY - this._moving.y)
+            this.move(this.x + dx * xMutiplier, this.y + dy * yMutiplier);
             this.emit('move', this)
             e.preventDefault()
         }
+
         if (this._resizing) {
-            this.resize(
-                event.pageX + this._resizing.width,
-                event.pageY + this._resizing.height
-            )
+
+            const yMutiplier = resizingState.vertical === ResizeDirections.Up ? -1 : 1;
+            const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? -1 : 1;
+
+            this.resize(this.width + dx * xMutiplier, this.height + dy * yMutiplier);
             this.maximized = null
             this.emit('resize', this)
             e.preventDefault()
