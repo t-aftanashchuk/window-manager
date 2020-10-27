@@ -662,28 +662,24 @@ export class Window extends Events {
             const event = this._convertMoveEvent(e)
             const width = this.width || this.win.offsetWidth
             const height = this.height || this.win.offsetHeight
-            const newWidth = Math.abs(width - event.pageX);
-            const newHeight = Math.abs(height - event.pageY);
 
             this._resizing = {
-                width: newWidth,
-                height: newHeight,
+                width: width - event.pageX,
+                height: height - event.pageY
             }
 
+            // this._moving = {
             let x = null;
             let y = null;
+            // }
 
             if (this.horizontalResize === ResizeDirections.Left) {
-                x = this.x - (newWidth - width);
-                console.log('x', x);
+                x = event.pageX - this.x;
             }
 
             if (this.horizontalResize === ResizeDirections.Top) {
-                y = this.y - (newHeight - height);
-                console.log('y', y);
+                y = event.pageY - this.y;
             }
-
-            // this._moving = { x, y };
 
             this.emit('resize-start')
             e.preventDefault()
@@ -724,7 +720,7 @@ export class Window extends Events {
                 this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
             }
 
-            // console.log('down', this.win.className);
+            console.log('down', this.win.className);
             this.emit('resize-start');
             e.preventDefault();
         })

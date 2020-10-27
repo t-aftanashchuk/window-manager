@@ -541,6 +541,8 @@ export class Window extends Events {
             x: event.pageX - this.x,
             y: event.pageY - this.y
         }
+
+
         this.emit('move-start', this)
         this._moved = false
     }
@@ -662,29 +664,10 @@ export class Window extends Events {
             const event = this._convertMoveEvent(e)
             const width = this.width || this.win.offsetWidth
             const height = this.height || this.win.offsetHeight
-            const newWidth = Math.abs(width - event.pageX);
-            const newHeight = Math.abs(height - event.pageY);
-
             this._resizing = {
-                width: newWidth,
-                height: newHeight,
+                width: width - event.pageX,
+                height: height - event.pageY
             }
-
-            let x = null;
-            let y = null;
-
-            if (this.horizontalResize === ResizeDirections.Left) {
-                x = this.x - (newWidth - width);
-                console.log('x', x);
-            }
-
-            if (this.horizontalResize === ResizeDirections.Top) {
-                y = this.y - (newHeight - height);
-                console.log('y', y);
-            }
-
-            // this._moving = { x, y };
-
             this.emit('resize-start')
             e.preventDefault()
         }
@@ -698,24 +681,24 @@ export class Window extends Events {
             const left = Math.abs(event.pageX - this.x) < 13;
             const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
 
+            this.verticalResize = up || down;
+            this.horizontalResize = left || right;
+            let resizingDirections = [];
+
             if (up) {
-                this.verticalResize = ResizeDirections.Up;
+                resizingDirections.push(ResizeDirections.Up);
             } else if (down) {
-                this.verticalResize = ResizeDirections.Down;
-            } else {
-                this.verticalResize = null;
+                resizingDirections.push(ResizeDirections.Down);
             }
 
             if (left) {
-                this.horizontalResize = ResizeDirections.Left;
+                resizingDirections.push(ResizeDirections.Left);
             } else if (right) {
-                this.horizontalResize = ResizeDirections.Right;
-            } else {
-                this.horizontalResize = null;
+                resizingDirections.push(ResizeDirections.Right);
             }
 
-            if (this.verticalResize || this.horizontalResize) {
-                const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
+            if (resizingDirections.length) {
+                const newClass = [RESIZE_PREFIX, ...resizingDirections].join('-');
                 if (this.win.className.includes(RESIZE_PREFIX))
                     this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
                 else
@@ -724,7 +707,7 @@ export class Window extends Events {
                 this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
             }
 
-            // console.log('down', this.win.className);
+            console.log('down', this.win.className);
             this.emit('resize-start');
             e.preventDefault();
         })

@@ -3,16 +3,6 @@ import { clicked } from 'clicked'
 
 import { html } from './html'
 
-
-const ResizeDirections = {
-    Up: 'up',
-    Down: 'down',
-    Left: 'left',
-    Right: 'right',
-}
-
-const RESIZE_PREFIX = 'resize'
-
 /**
  * Window class returned by WindowManager.createWindow()
  * @extends EventEmitter
@@ -33,12 +23,14 @@ const RESIZE_PREFIX = 'resize'
  * @fires resize-width
  * @fires resize-height
  */
-export class Window extends Events {
+export class Window extends Events
+{
     /**
      * @param {WindowManager} [wm]
      * @param {object} [options]
      */
-    constructor(wm, options = {}) {
+    constructor(wm, options={})
+    {
         super()
         this.wm = wm
         this.options = options
@@ -54,20 +46,21 @@ export class Window extends Events {
         this._moving = null
         this._resizing = null
         this._attachedToScreen = { vertical: '', horziontal: '' }
-        this.verticalResize = false;
-        this.horizontalResize = false;
     }
 
     /**
      * open the window
      * @param {boolean} [noFocus] do not focus window when opened
      */
-    open(noFocus) {
-        if (this._closed) {
+    open(noFocus)
+    {
+        if (this._closed)
+        {
             this.win.style.display = 'block'
             this._closed = false
             this.emit('open', this)
-            if (!noFocus) {
+            if (!noFocus)
+            {
                 this.focus()
             }
         }
@@ -76,9 +69,11 @@ export class Window extends Events {
     /**
      * focus the window
      */
-    focus() {
+    focus()
+    {
         this.active = true
-        if (this.options.titlebar) {
+        if (this.options.titlebar)
+        {
             this.winTitlebar.style.backgroundColor = this.options.backgroundTitlebarActive
         }
         this.emit('focus', this)
@@ -87,9 +82,11 @@ export class Window extends Events {
     /**
      * blur the window
      */
-    blur() {
+    blur()
+    {
         this.active = false
-        if (this.options.titlebar) {
+        if (this.options.titlebar)
+        {
             this.winTitlebar.style.backgroundColor = this.options.backgroundTitlebarInactive
         }
         this.emit('blur', this)
@@ -98,8 +95,10 @@ export class Window extends Events {
     /**
      * closes the window (can be reopened with open)
      */
-    close() {
-        if (!this._closed) {
+    close()
+    {
+        if (!this._closed)
+        {
             this._closed = true
             this.win.style.display = 'none'
             this.emit('close', this)
@@ -111,7 +110,8 @@ export class Window extends Events {
      * @type {boolean}
      * @readonly
      */
-    get closed() {
+    get closed()
+    {
         return this._closed
     }
 
@@ -120,15 +120,18 @@ export class Window extends Events {
      * @type {number}
      */
     get x() { return this.options.x }
-    set x(value) {
-        if (value !== this.options.x) {
+    set x(value)
+    {
+        if (value !== this.options.x)
+        {
             this.options.x = value
             this.emit('move-x', this)
             this._buildTransform()
         }
     }
 
-    _buildTransform() {
+    _buildTransform()
+    {
         this.win.style.transform = `translate(${this.options.x}px,${this.options.y}px)`
     }
 
@@ -137,8 +140,10 @@ export class Window extends Events {
      * @type {number}
      */
     get y() { return this.options.y }
-    set y(value) {
-        if (value !== this.options.y) {
+    set y(value)
+    {
+        if (value !== this.options.y)
+        {
             this.options.y = value
             this._buildTransform()
             this.emit('move-y', this)
@@ -150,13 +155,17 @@ export class Window extends Events {
      * @type {number}
      */
     get width() { return this.options.width || this.win.offsetWidth }
-    set width(value) {
-        if (value !== this.options.width) {
-            if (value) {
+    set width(value)
+    {
+        if (value !== this.options.width)
+        {
+            if (value)
+            {
                 this.win.style.width = `${value}px`
                 this.options.width = this.win.offsetWidth
             }
-            else {
+            else
+            {
                 this.win.style.width = 'auto'
                 this.options.width = ''
             }
@@ -169,13 +178,17 @@ export class Window extends Events {
      * @type {number}
      */
     get height() { return this.options.height || this.win.offsetHeight }
-    set height(value) {
-        if (value !== this.options.height) {
-            if (value) {
+    set height(value)
+    {
+        if (value !== this.options.height)
+        {
+            if (value)
+            {
                 this.win.style.height = `${value}px`
                 this.options.height = this.win.offsetHeight
             }
-            else {
+            else
+            {
                 this.win.style.height = 'auto'
                 this.options.height = ''
             }
@@ -188,7 +201,8 @@ export class Window extends Events {
      * @param {number} width
      * @param {number} height
      */
-    resize(width, height) {
+    resize(width, height)
+    {
         this.width = width
         this.height = height
     }
@@ -198,24 +212,30 @@ export class Window extends Events {
      * @param {number} x
      * @param {number} y
      */
-    move(x, y) {
+    move(x, y)
+    {
         const keepInside = this.keepInside
-        if (keepInside) {
+        if (keepInside)
+        {
             const bounds = this.bounds
-            if (keepInside === true || keepInside === 'horizontal') {
+            if (keepInside === true || keepInside === 'horizontal')
+            {
                 x = x + this.width > bounds.right ? bounds.right - this.width : x
                 x = x < bounds.left ? bounds.left : x
             }
-            if (keepInside === true || keepInside === 'vertical') {
+            if (keepInside === true || keepInside === 'vertical')
+            {
                 y = y + this.height > bounds.bottom ? bounds.bottom - this.height : y
                 y = y < bounds.top ? bounds.top : y
             }
         }
-        if (x !== this.options.x) {
+        if (x !== this.options.x)
+        {
             this.options.x = x
             this.emit('move-x', this)
         }
-        if (y !== this.options.y) {
+        if (y !== this.options.y)
+        {
             this.options.y = y
             this.emit('move-y', this)
         }
@@ -225,9 +245,12 @@ export class Window extends Events {
     /**
      * maximize the window
      */
-    maximize() {
-        if (this.options.maximizable) {
-            if (this.maximized) {
+    maximize()
+    {
+        if (this.options.maximizable)
+        {
+            if (this.maximized)
+            {
                 this.x = this.maximized.x
                 this.y = this.maximized.y
                 this.width = this.maximized.width
@@ -236,7 +259,8 @@ export class Window extends Events {
                 this.emit('restore', this)
                 this.buttons.maximize.innerHTML = this.options.maximizeButton
             }
-            else {
+            else
+            {
                 const x = this.x, y = this.y, width = this.win.offsetWidth, height = this.win.offsetHeight
                 this.maximized = { x, y, width, height }
                 this.x = 0
@@ -252,14 +276,16 @@ export class Window extends Events {
     /**
      * sends window to back of window-manager
      */
-    sendToBack() {
+    sendToBack()
+    {
         this.wm.sendToBack(this)
     }
 
     /**
      * send window to front of window-manager
      */
-    sendToFront() {
+    sendToFront()
+    {
         this.wm.sendToFront(this)
     }
 
@@ -267,18 +293,22 @@ export class Window extends Events {
      * save the state of the window
      * @return {object} data
      */
-    save() {
+    save()
+    {
         const data = {}
         const maximized = this.maximized
-        if (maximized) {
+        if (maximized)
+        {
             data.maximized = { left: maximized.left, top: maximized.top, width: maximized.width, height: maximized.height }
         }
         data.x = this.x
         data.y = this.y
-        if (typeof this.options.width !== 'undefined') {
+        if (typeof this.options.width !== 'undefined')
+        {
             data.width = this.options.width
         }
-        if (typeof this.options.height !== 'undefined') {
+        if (typeof this.options.height !== 'undefined')
+        {
             data.height = this.options.height
         }
         data.closed = this._closed
@@ -289,33 +319,43 @@ export class Window extends Events {
      * return the state of the window
      * @param {object} data from save()
      */
-    load(data) {
-        if (data.maximized) {
-            if (!this.maximized) {
+    load(data)
+    {
+        if (data.maximized)
+        {
+            if (!this.maximized)
+            {
                 this.maximize(true)
             }
         }
-        else if (this.maximized) {
+        else if (this.maximized)
+        {
             this.maximize(true)
         }
         this.x = data.x
         this.y = data.y
-        if (typeof data.width !== 'undefined') {
+        if (typeof data.width !== 'undefined')
+        {
             this.width = data.width
         }
-        else {
+        else
+        {
             this.win.style.width = 'auto'
         }
-        if (typeof data.height !== 'undefined') {
+        if (typeof data.height !== 'undefined')
+        {
             this.height = data.height
         }
-        else {
+        else
+        {
             this.win.style.height = 'auto'
         }
-        if (data.closed) {
+        if (data.closed)
+        {
             this.close(true)
         }
-        else if (this.closed) {
+        else if (this.closed)
+        {
             this.open(true, true)
         }
     }
@@ -325,7 +365,8 @@ export class Window extends Events {
      * @type {string}
      */
     get title() { return this._title }
-    set title(value) {
+    set title(value)
+    {
         this.winTitle.innerText = value
         this.emit('title-change', this)
     }
@@ -336,7 +377,8 @@ export class Window extends Events {
      * @type {number}
      */
     get right() { return this.x + this.width }
-    set right(value) {
+    set right(value)
+    {
         this.x = value - this.width
     }
 
@@ -345,7 +387,8 @@ export class Window extends Events {
      * @type {number}
      */
     get bottom() { return this.y + this.height }
-    set bottom(value) {
+    set bottom(value)
+    {
         this.y = value - this.height
     }
 
@@ -353,14 +396,17 @@ export class Window extends Events {
      * centers window in middle of other window or document.body
      * @param {Window} [win]
      */
-    center(win) {
-        if (win) {
+    center(win)
+    {
+        if (win)
+        {
             this.move(
                 win.x + win.width / 2 - this.width / 2,
                 win.y + win.height / 2 - this.height / 2
             )
         }
-        else {
+        else
+        {
             this.move(
                 window.innerWidth / 2 - this.width / 2,
                 window.innerHeight / 2 - this.height / 2
@@ -463,7 +509,8 @@ export class Window extends Events {
      * @type {Window}
      */
 
-    _createWindow() {
+    _createWindow()
+    {
         /**
          * This is the top-level DOM element
          * @type {HTMLElement}
@@ -515,7 +562,8 @@ export class Window extends Events {
             className: this.options.classNames.content
         })
 
-        if (this.options.resizable) {
+        if (this.options.resizable)
+        {
             this._createResize()
         }
 
@@ -535,7 +583,8 @@ export class Window extends Events {
         this._buildTransform()
     }
 
-    _downTitlebar(e) {
+    _downTitlebar(e)
+    {
         const event = this._convertMoveEvent(e)
         this._moving = {
             x: event.pageX - this.x,
@@ -545,8 +594,10 @@ export class Window extends Events {
         this._moved = false
     }
 
-    _createTitlebar() {
-        if (this.options.titlebar) {
+    _createTitlebar()
+    {
+        if (this.options.titlebar)
+        {
             this.winTitlebar = html({
                 parent: this.winBox, type: 'header', styles: {
                     'user-select': 'none',
@@ -576,27 +627,32 @@ export class Window extends Events {
                 'font-weight': 400,
                 'color': this.options.foregroundTitle
             }
-            if (this.options.titleCenter) {
+            if (this.options.titleCenter)
+            {
                 winTitleStyles['justify-content'] = 'center'
             }
-            else {
+            else
+            {
                 winTitleStyles['padding-left'] = '8px'
 
             }
             this.winTitle = html({ parent: this.winTitlebar, type: 'span', html: this.options.title, styles: winTitleStyles, className: this.options.classNames.winTitle })
             this._createButtons()
 
-            if (this.options.movable) {
+            if (this.options.movable)
+            {
                 this.winTitlebar.addEventListener('mousedown', (e) => this._downTitlebar(e))
                 this.winTitlebar.addEventListener('touchstart', (e) => this._downTitlebar(e))
             }
-            if (this.options.maximizable) {
-                clicked(this.winTitlebar, () => this.maximize(), { doubleClicked: true, clicked: false })
+            if (this.options.maximizable)
+            {
+                clicked(this.winTitlebar, () => this.maximize(), { doubleClicked: true, clicked: false})
             }
         }
     }
 
-    _createButtons() {
+    _createButtons()
+    {
         this.winButtonGroup = html({
             parent: this.winTitlebar, styles: {
                 'display': 'flex',
@@ -622,26 +678,32 @@ export class Window extends Events {
             'outline': 0
         }
         this.buttons = {}
-        if (this.options.maximizable) {
+        if (this.options.maximizable)
+        {
             this.buttons.maximize = html({ parent: this.winButtonGroup, html: this.options.maximizeButton, type: 'button', styles: button, className: this.options.maximize })
             clicked(this.buttons.maximize, () => this.maximize())
         }
-        if (this.options.closable) {
+        if (this.options.closable)
+        {
             this.buttons.close = html({ parent: this.winButtonGroup, html: this.options.closeButton, type: 'button', styles: button, className: this.options.close })
             clicked(this.buttons.close, () => this.close())
         }
-        for (let key in this.buttons) {
+        for (let key in this.buttons)
+        {
             const button = this.buttons[key]
-            button.addEventListener('mousemove', () => {
+            button.addEventListener('mousemove', () =>
+            {
                 button.style.opacity = 1
             })
-            button.addEventListener('mouseout', () => {
+            button.addEventListener('mouseout', () =>
+            {
                 button.style.opacity = 0.7
             })
         }
     }
 
-    _createResize() {
+    _createResize()
+    {
         // this.resizeEdge = html({
         //     parent: this.winBox, type: 'button', html: this.options.backgroundResize, styles: {
         //         'position': 'absolute',
@@ -658,95 +720,44 @@ export class Window extends Events {
         //     },
         //     className: this.options.classNames.resizeEdge
         // })
-        const resize = e => {
+        const down = e => {
             const event = this._convertMoveEvent(e)
             const width = this.width || this.win.offsetWidth
             const height = this.height || this.win.offsetHeight
-            const newWidth = Math.abs(width - event.pageX);
-            const newHeight = Math.abs(height - event.pageY);
-
             this._resizing = {
-                width: newWidth,
-                height: newHeight,
+                width: width - event.pageX,
+                height: height - event.pageY
             }
-
-            let x = null;
-            let y = null;
-
-            if (this.horizontalResize === ResizeDirections.Left) {
-                x = this.x - (newWidth - width);
-                console.log('x', x);
-            }
-
-            if (this.horizontalResize === ResizeDirections.Top) {
-                y = this.y - (newHeight - height);
-                console.log('y', y);
-            }
-
-            // this._moving = { x, y };
-
             this.emit('resize-start')
             e.preventDefault()
         }
-
-        this.winBox.addEventListener('mousedown', resize)
-        this.winBox.addEventListener('touchstart', resize)
-        this.winBox.addEventListener('mousemove', (e) => {
-            const event = this._convertMoveEvent(e)
-            const up = Math.abs(event.pageY - this.y) < 13;
-            const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
-            const left = Math.abs(event.pageX - this.x) < 13;
-            const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
-
-            if (up) {
-                this.verticalResize = ResizeDirections.Up;
-            } else if (down) {
-                this.verticalResize = ResizeDirections.Down;
-            } else {
-                this.verticalResize = null;
-            }
-
-            if (left) {
-                this.horizontalResize = ResizeDirections.Left;
-            } else if (right) {
-                this.horizontalResize = ResizeDirections.Right;
-            } else {
-                this.horizontalResize = null;
-            }
-
-            if (this.verticalResize || this.horizontalResize) {
-                const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
-                if (this.win.className.includes(RESIZE_PREFIX))
-                    this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
-                else
-                    this.win.className += ` ${newClass}`;
-            } else {
-                this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
-            }
-
-            // console.log('down', this.win.className);
-            this.emit('resize-start');
-            e.preventDefault();
-        })
+        this. winBox.addEventListener('mousedown', down)
+        this. winBox.addEventListener('touchstart', down)
     }
 
-    _move(e) {
+    _move(e)
+    {
         const event = this._convertMoveEvent(e)
 
-        if (!this._isTouchEvent(e) && e.which !== 1) {
-            if (this._moving) {
+        if (!this._isTouchEvent(e) && e.which !== 1)
+        {
+            if (this._moving)
+            {
                 this._stopMove()
             }
-            if (this._resizing) {
+            if (this._resizing)
+            {
                 this._stopResize()
             }
         }
-        if (this._moving) {
+        if (this._moving)
+        {
             this.move(event.pageX - this._moving.x, event.pageY - this._moving.y)
             this.emit('move', this)
             e.preventDefault()
         }
-        if (this._resizing) {
+        if (this._resizing)
+        {
             this.resize(
                 event.pageX + this._resizing.width,
                 event.pageY + this._resizing.height
@@ -757,35 +768,43 @@ export class Window extends Events {
         }
     }
 
-    _up() {
-        if (this._moving) {
+    _up()
+    {
+        if (this._moving)
+        {
             this._stopMove()
         }
-        if (this._resizing) {
+        if (this._resizing)
+        {
             this._stopResize()
         }
     }
 
-    _listeners() {
+    _listeners()
+    {
         this.win.addEventListener('mousedown', () => this.focus())
         this.win.addEventListener('touchstart', () => this.focus())
     }
 
-    _stopMove() {
+    _stopMove()
+    {
         this._moving = null
         this.emit('move-end', this)
     }
 
-    _stopResize() {
+    _stopResize()
+    {
         this._restore = this._resizing = null
         this.emit('resize-end', this)
     }
 
-    _isTouchEvent(e) {
+    _isTouchEvent(e)
+    {
         return !!window.TouchEvent && (e instanceof window.TouchEvent)
     }
 
-    _convertMoveEvent(e) {
+    _convertMoveEvent(e)
+    {
         return this._isTouchEvent(e) ? e.changedTouches[0] : e
     }
 
@@ -794,7 +813,8 @@ export class Window extends Events {
      * @param {('horizontal'|'vertical')} direction
      * @param {('left'|'right'|'top'|'bottom')} location
      */
-    attachToScreen(direction, location) {
+    attachToScreen(direction, location)
+    {
         this._attachedToScreen[direction] = location
     }
 
@@ -802,7 +822,8 @@ export class Window extends Events {
      * @param {Bounds} bounds
      * @param {(boolean|'horizontal'|'vertical')} keepInside
      */
-    resizePlacement(bounds, keepInside) {
+    resizePlacement(bounds, keepInside)
+    {
         this.bounds = bounds
         this.keepInside = keepInside
         let x = this.x
@@ -818,19 +839,23 @@ export class Window extends Events {
      * @param {boolean} [ignoreClosed]
      * @returns {boolean}
      */
-    isModal(ignoreClosed) {
+    isModal(ignoreClosed)
+    {
         return (ignoreClosed || !this._closed) && this.options.modal
     }
 
     /** @returns {boolean} */
-    isClosed() {
+    isClosed()
+    {
         return this._closed
     }
 
-    get z() {
+    get z()
+    {
         return parseInt(this.win.style.zIndex)
     }
-    set z(value) {
+    set z(value)
+    {
         this.win.style.zIndex = value
     }
 }

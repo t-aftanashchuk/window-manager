@@ -11,7 +11,7 @@ const ResizeDirections = {
     Right: 'right',
 }
 
-const RESIZE_PREFIX = 'resize'
+const RESIZE_PREFIX = 'resize-'
 
 /**
  * Window class returned by WindowManager.createWindow()
@@ -54,8 +54,6 @@ export class Window extends Events {
         this._moving = null
         this._resizing = null
         this._attachedToScreen = { vertical: '', horziontal: '' }
-        this.verticalResize = false;
-        this.horizontalResize = false;
     }
 
     /**
@@ -541,6 +539,8 @@ export class Window extends Events {
             x: event.pageX - this.x,
             y: event.pageY - this.y
         }
+
+
         this.emit('move-start', this)
         this._moved = false
     }
@@ -658,75 +658,69 @@ export class Window extends Events {
         //     },
         //     className: this.options.classNames.resizeEdge
         // })
-        const resize = e => {
+        const down = e => {
             const event = this._convertMoveEvent(e)
             const width = this.width || this.win.offsetWidth
             const height = this.height || this.win.offsetHeight
-            const newWidth = Math.abs(width - event.pageX);
-            const newHeight = Math.abs(height - event.pageY);
-
             this._resizing = {
-                width: newWidth,
-                height: newHeight,
+                width: width - event.pageX,
+                height: height - event.pageY
             }
 
-            let x = null;
-            let y = null;
-
-            if (this.horizontalResize === ResizeDirections.Left) {
-                x = this.x - (newWidth - width);
-                console.log('x', x);
-            }
-
-            if (this.horizontalResize === ResizeDirections.Top) {
-                y = this.y - (newHeight - height);
-                console.log('y', y);
-            }
-
-            // this._moving = { x, y };
-
-            this.emit('resize-start')
-            e.preventDefault()
-        }
-
-        this.winBox.addEventListener('mousedown', resize)
-        this.winBox.addEventListener('touchstart', resize)
-        this.winBox.addEventListener('mousemove', (e) => {
-            const event = this._convertMoveEvent(e)
             const up = Math.abs(event.pageY - this.y) < 13;
             const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
             const left = Math.abs(event.pageX - this.x) < 13;
             const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
 
+            this.verticalResize = up || down;
+            this.horizontalResize = left || right;
+            const resizingDirection = '';
+
             if (up) {
-                this.verticalResize = ResizeDirections.Up;
+                resizingDirection += ResizeDirections.Up;
             } else if (down) {
-                this.verticalResize = ResizeDirections.Down;
-            } else {
-                this.verticalResize = null;
+                resizingDirection += ResizeDirections.Down;
             }
 
             if (left) {
-                this.horizontalResize = ResizeDirections.Left;
+                resizingDirection += `-${ResizeDirections.Left}`;
             } else if (right) {
-                this.horizontalResize = ResizeDirections.Right;
-            } else {
-                this.horizontalResize = null;
+                resizingDirection += `-${ResizeDirections.Right}`;
             }
 
-            if (this.verticalResize || this.horizontalResize) {
-                const newClass = [RESIZE_PREFIX, this.verticalResize, this.horizontalResize].filter(Boolean).join('-');
-                if (this.win.className.includes(RESIZE_PREFIX))
-                    this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+            if (resizingDirection) {
+                if (this.win.className.contains(RESIZE_PREFIX))
+                    this.win.className = this.win.className.replace(/resize-.*\s/gi, `${RESIZE_PREFIX}${resizingDirection} `);
                 else
-                    this.win.className += ` ${newClass}`;
+                    this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
             } else {
-                this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+
             }
 
-            // console.log('down', this.win.className);
-            this.emit('resize-start');
-            e.preventDefault();
+            this.emit('resize-start')
+            e.preventDefault()
+        }
+
+        this.winBox.addEventListener('mousedown', down)
+        this.winBox.addEventListener('touchstart', down)
+        this.winBox.addEventListener('mousemove', (e) => {
+            const event = this._convertMoveEvent(e)
+            // const width = this.width || this.win.offsetWidth
+            // const height = this.height || this.win.offsetHeight
+            // this._resizing = {
+            //     width: width - event.pageX,
+            //     height: height - event.pageY
+            // }
+
+            const up = Math.abs(event.pageY - this.y) < 13;
+            const down = Math.abs(event.pageY - (this.y + this.height)) < 13;
+            const left = Math.abs(event.pageX - this.x) < 13;
+            const right = Math.abs(event.pageX - (this.x + this.width)) < 13;
+
+            console.log('down', up, down, left, right)
+            this.classNames
+            this.emit('resize-start')
+            e.preventDefault()
         })
     }
 

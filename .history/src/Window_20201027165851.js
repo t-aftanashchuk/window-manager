@@ -675,15 +675,13 @@ export class Window extends Events {
 
             if (this.horizontalResize === ResizeDirections.Left) {
                 x = this.x - (newWidth - width);
-                console.log('x', x);
             }
 
             if (this.horizontalResize === ResizeDirections.Top) {
                 y = this.y - (newHeight - height);
-                console.log('y', y);
             }
 
-            // this._moving = { x, y };
+            this._moving = { x, y };
 
             this.emit('resize-start')
             e.preventDefault()
@@ -724,7 +722,7 @@ export class Window extends Events {
                 this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
             }
 
-            // console.log('down', this.win.className);
+            console.log('down', this.win.className);
             this.emit('resize-start');
             e.preventDefault();
         })

@@ -1,0 +1,26 @@
+<head>
+    <meta charset="utf-8">
+    <title>simple-window-manager</title>
+    <!-- <link rel="stylesheet" href="index.css"> -->
+    <style>
+        body {
+            background-color: grey;
+        }
+    </style>
+</head>
+<body>
+    <script src="./public/simple-window-manager.min.js"></script>
+    <script>
+        const wm = new WindowManager.WindowManager({ backgroundWindow: 'green' });
+
+        // enable window snapping to screen edges and other windows when moving
+        wm.snap();
+
+        // create a window    
+        const _window = wm.createWindow({ width: 500, height: 500, title: 'Test Window' });
+
+        // set content of window
+        _window.content.style.margin = '10px';
+        _window.content.innerHTML = 'This is a nifty window.';
+    </script>
+</body>

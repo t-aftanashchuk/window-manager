@@ -10,7 +10,6 @@
     "build-images": "node images/import",
     "build-demo": "rollup -c docs/rollup.config.js",
     "build": "rollup -c rollup.config.js",
-    "watch": "rollup -c rollup.config.js --watch",
     "prepublishOnly": "yarn build-demo && yarn build && yarn docs"
   },
   "repository": {

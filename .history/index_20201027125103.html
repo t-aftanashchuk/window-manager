@@ -1,0 +1,43 @@
+
+<!doctype html>
+<html>
+  <head>
+    <title>SWM</title>
+  </head>
+  <!-- <script src="./src/images.js"></script>
+  <script src="./src/Snap.js"></script>
+  <script src="./src/Window.js"></script>
+  <script src="./src/WindowManager.js"></script> -->
+
+  <link rel="stylesheet" href="./docs/index.css">
+  <style>
+      body {
+        height: 100%;
+        width: 100%;
+      }
+  </style>
+  <body>
+    <div id="container"></div>
+  </body>
+  <script src="./public/simple-window-manager.es.js"></script>
+
+  <script>
+      setTimeout(() => {
+         //    import { WindowManager } from 'simple-window-manager'
+    // or const WindowManager = require('simple-window-manager').WindowManager
+
+    // this is the window manager with one of the default options changed
+    const wm = new WindowManager({ backgroundWindow: 'green', parent: document.getElementById('container')});
+
+    // enable window snapping to screen edges and other windows when moving
+    wm.snap({spacing: 4})
+
+    // create a window    
+    const window = wm.createWindow({ width: 500, height: 500, title: 'Test Window' })
+
+    // set content of window
+    window.content.style.margin = '100px'
+    window.content.innerHTML = 'This is a nifty window.' 
+      });
+  </script>
+</html>

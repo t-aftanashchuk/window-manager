@@ -724,7 +724,7 @@ export class Window extends Events {
                 this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
             }
 
-            // console.log('down', this.win.className);
+            console.log('down', this.win.className);
             this.emit('resize-start');
             e.preventDefault();
         })
