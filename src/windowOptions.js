@@ -54,14 +54,6 @@ export const windowOptions = {
     closable: true,
 
     titlebar: true,
-    titlebarHeight: '2rem',
-
-    backgroundModal: 'rgba(0, 0, 0, 0.6)',
-    backgroundWindow: '#fefefe',
-    backgroundTitlebarActive: '#365d98',
-    backgroundTitlebarInactive: '#888888',
-    foregroundButton: '#ffffff',
-    foregroundTitle: '#ffffff',
 
     closeButton: close,
     maximizeButton: maximize,
