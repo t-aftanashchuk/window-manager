@@ -11,6 +11,40 @@ const ResizeDirections = {
     Right: 'right',
 }
 
+const demoHeaderStyles = {
+    'user-select': 'none',
+    'display': 'flex',
+    'flex-direction': 'row',
+    'align-items': 'center',
+    'justify-content': 'space-between',
+    'backgroundColor': 'yellowgreen',
+    'border': 0,
+    'padding': '0 8px',
+    'overflow': 'hidden',
+}
+
+const demoButtonStyles = {
+    'display': 'inline-block',
+    'border': 0,
+    'margin': 0,
+    'margin-left': '15px',
+    'padding': 0,
+    'width': '12px',
+    'height': '12px',
+    'background-color': 'transparent',
+    'background-size': 'cover',
+    'background-repeat': 'no-repeat',
+    'opacity': .7,
+    'outline': 0
+}
+
+const demoControlButtonsStyles = {
+    'display': 'flex',
+    'flex-direction': 'row',
+    'align-items': 'center',
+    'padding-left': '10px'
+}
+
 const RESIZE_PREFIX = 'resize'
 
 /**
@@ -470,22 +504,23 @@ export class Window extends Events {
          * @type {HTMLElement}
          * @readonly
          */
+        const winStyles = {
+            'user-select': 'none',
+            'overflow': 'hidden',
+            'position': 'absolute',
+            'min-width': this.options.minWidth,
+            'min-height': this.options.minHeight,
+            'width': isNaN(this.options.width) ? this.options.width : this.options.width + 'px',
+            'height': isNaN(this.options.height) ? this.options.height : this.options.height + 'px',
+            ...this.options.styles
+        }
+
         this.win = html({
-            parent: (this.wm ? this.wm.win : null), styles: {
-                'display': 'none',
-                'border-radius': this.options.borderRadius,
-                'user-select': 'none',
-                'overflow': 'hidden',
-                'position': 'absolute',
-                'min-width': this.options.minWidth,
-                'min-height': this.options.minHeight,
-                'box-shadow': this.options.shadow,
-                'background-color': this.options.backgroundWindow,
-                'width': isNaN(this.options.width) ? this.options.width : this.options.width + 'px',
-                'height': isNaN(this.options.height) ? this.options.height : this.options.height + 'px',
-                ...this.options.styles
-            },
-            className: this.options.classNames.win
+            parent: (this.wm ? this.wm.win : null), 
+            styles: winStyles,
+            className: this.options.classNames.win 
+                ? this.options.classNames.win + ' frame'
+                : 'frame'
         })
 
         this.winBox = html({
@@ -494,9 +529,12 @@ export class Window extends Events {
                 'flex-direction': 'column',
                 'width': '100%',
                 'height': '100%',
-                'min-height': this.options.minHeight
+                'min-height': this.options.minHeight,
+                'background-color': this.options.demo ? 'white' : null
             },
-            className: this.options.classNames.winBox
+            className: this.options.classNames.winBox 
+                ? this.options.classNames.winBox  + ' container'
+                : 'container'
         })
         this._createTitlebar()
 
@@ -507,8 +545,6 @@ export class Window extends Events {
          */
         this.content = html({
             parent: this.winBox, type: 'section', styles: {
-                'display': 'block',
-                'flex': 1,
                 'min-height': this.minHeight,
                 'overflow-x': 'hidden',
                 'overflow-y': 'auto'
@@ -547,44 +583,38 @@ export class Window extends Events {
     }
 
     _createTitlebar() {
+        const headerStyles = {
+            'user-select': 'none',
+            'display': 'flex',
+            'flex-direction': 'row',
+            'overflow': 'hidden',
+            'height': this.options.titlebarHeight,
+            'min-height': this.options.titlebarHeight,
+        }
+
         if (this.options.titlebar) {
             this.winTitlebar = html({
-                parent: this.winBox, type: 'header', styles: {
-                    'user-select': 'none',
-                    'display': 'flex',
-                    'flex-direction': 'row',
-                    'align-items': 'center',
-                    'justify-content': 'center',
-                    'height': this.options.titlebarHeight,
-                    'min-height': this.options.titlebarHeight,
-                    'border': 0,
-                    'padding': '0 8px',
-                    'overflow': 'hidden',
-                },
+                parent: this.winBox, type: 'header', 
+                styles: this.options.demo ? demoHeaderStyles : headerStyles, // DEVELOP
                 className: this.options.classNames.titlebar
             })
-            const winTitleStyles = {
-                'user-select': 'none',
-                'flex': 1,
-                'display': 'flex',
-                'flex-direction': 'row',
-                'align-items': 'center',
-                'user-select': 'none',
-                'cursor': 'default',
-                'padding': 0,
-                'margin': 0,
-                'font-size': '16px',
-                'font-weight': 400,
-                'color': this.options.foregroundTitle
-            }
-            if (this.options.titleCenter) {
-                winTitleStyles['justify-content'] = 'center'
-            }
-            else {
-                winTitleStyles['padding-left'] = '8px'
 
-            }
-            this.winTitle = html({ parent: this.winTitlebar, type: 'span', html: this.options.title, styles: winTitleStyles, className: this.options.classNames.winTitle })
+            this.frameManager = html({
+                parent: this.winTitlebar,
+                className: 'frame-manager'
+            });
+
+            this.headerTitle = html({
+                parent: this.winTitlebar,
+                html: this.options.title, 
+                className: 'title'
+            });
+
+            this.headerToolbar = html({
+                parent: this.winTitlebar,
+                className: 'tool-bar'
+            });
+
             this._createButtons()
 
             if (this.options.movable) {
@@ -598,39 +628,47 @@ export class Window extends Events {
     }
 
     _createButtons() {
+
         this.winButtonGroup = html({
-            parent: this.winTitlebar, styles: {
-                'display': 'flex',
-                'flex-direction': 'row',
-                'align-items': 'center',
-                'padding-left': '10px'
-            },
-            className: this.options.classNames.winButtonGroup
-        })
-        const button = {
-            'display': 'inline-block',
-            'border': 0,
-            'margin': 0,
-            'margin-left': '15px',
-            'padding': 0,
-            'width': '12px',
-            'height': '12px',
-            'background-color': 'transparent',
-            'background-size': 'cover',
-            'background-repeat': 'no-repeat',
-            'opacity': .7,
-            'color': this.options.foregroundButton,
-            'outline': 0
-        }
+            parent: this.winTitlebar,
+            className: 'control-bar',
+            styles: this.options.demo ? demoControlButtonsStyles : null, // DEVELOP
+        });
+
         this.buttons = {}
+
+        if (this.options.minimizable) {
+            this.buttons.minimize = html({ 
+                parent: this.winButtonGroup, 
+                type: 'i', 
+                className: 'icon-minimize',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+            })
+            clicked(this.buttons.minimize, () => this.minimize())
+        }
+
         if (this.options.maximizable) {
-            this.buttons.maximize = html({ parent: this.winButtonGroup, html: this.options.maximizeButton, type: 'button', styles: button, className: this.options.maximize })
+            this.buttons.maximize = html({ 
+                parent: this.winButtonGroup, 
+                className: 'icon-maximaze',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+                html: this.options.demo ? this.options.maximizeButton : null, 
+                type: this.options.demo ? 'button' : 'i',
+            })
             clicked(this.buttons.maximize, () => this.maximize())
         }
+
         if (this.options.closable) {
-            this.buttons.close = html({ parent: this.winButtonGroup, html: this.options.closeButton, type: 'button', styles: button, className: this.options.close })
+            this.buttons.close = html({ 
+                parent: this.winButtonGroup, 
+                className: 'icon-delete',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+                html: this.options.demo ? this.options.closeButton : null, 
+                type: this.options.demo ? 'button' : 'i',
+            })
             clicked(this.buttons.close, () => this.close())
         }
+
         for (let key in this.buttons) {
             const button = this.buttons[key]
             button.addEventListener('mousemove', () => {
@@ -813,7 +851,7 @@ export class Window extends Events {
         } else {
             // this._prevPosition = null; // todo clear
             this._moving = true;
-            this._stopResize();
+            // this._stopResize();
             this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
         }
 
