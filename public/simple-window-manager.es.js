@@ -1440,18 +1440,21 @@ class Window extends eventemitter3 {
             horizontal = null;
         }
 
-        if (horizontal || vertical)
+        if (horizontal || vertical) {
             return prevResizingState || {
                 horizontal,
                 vertical,
             }
-        else if (
-            event.pageX >= this.x &&
-            event.pageX <= (this.x + this.width) &&
-            event.pageY >= this.y &&
-            event.pageY <= (this.y + this.height)
-        ) return {};
+        }
 
+        var _offset = prevResizingState ? 10000 : 0;
+
+        if (
+            event.pageX >= (this.x - _offset) &&
+            event.pageX <= ((this.x + this.width + _offset)) &&
+            event.pageY >= (this.y - _offset) &&
+            event.pageY <= ((this.y + this.height + _offset))
+        ) return prevResizingState || {};
 
         return null;
     }
@@ -1459,9 +1462,23 @@ class Window extends eventemitter3 {
     _move = (e) => {
         const event = this._convertMoveEvent(e);
         const resizingState = this._getHitTestState(event, this._resizing);
+        // console.log(JSON.stringify(resizingState));
+        // console.log('sacce', e.changedTouches, resizingState)
+
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        }
+
+        // if (e.type === 'mousemove' || e.type === 'touchmove')
+        //     this._resizing = resizingState;
+        // else {
+        //     this._resizing = null;
+        //     this._prevPosition = null;
+        // }
 
         if (resizingState == null) {
             this._prevPosition = null;
+            this._resizing = null;
             return;
         }
 
@@ -1469,7 +1486,7 @@ class Window extends eventemitter3 {
             if (!this._resizing)
                 this.emit('resize-start');
 
-            this._resizing = resizingState;
+            // this._resizing = resizingState;
 
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
@@ -1478,10 +1495,11 @@ class Window extends eventemitter3 {
                 this.win.className += ` ${newClass}`;
 
             // e.preventDefault();
+            this._moving = false;
         } else {
             // this._prevPosition = null; // todo clear
             this._moving = true;
-            this._stopResize();
+            // this._stopResize();
             this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
         }
 
@@ -1498,7 +1516,7 @@ class Window extends eventemitter3 {
             return;
         }
 
-        if (!this._isTouchEvent(e) && e.which !== 1) {
+        if ((!this._isTouchEvent(e) && e.which !== 1)) {
             if (this._moving) {
                 this._stopMove();
             }
@@ -1507,9 +1525,15 @@ class Window extends eventemitter3 {
             }
         }
 
-        console.log(JSON.stringify(resizingState));
-        if (this._resizing) {
+        else if (this._moving) {
+            this.move(
+                this.x + dx,
+                this.y + dy,
+            );
 
+            this.emit('move', this);
+            e.preventDefault();
+        } else if (this._resizing) {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
 
@@ -1518,14 +1542,6 @@ class Window extends eventemitter3 {
                 resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
                 resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
             );
-        } else if (this._moving) {
-            this.move(
-                this.x + dx,
-                this.y + dy,
-            );
-
-            this.emit('move', this);
-            e.preventDefault();
         }
 
         if (this._resizing) {

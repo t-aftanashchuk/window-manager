@@ -16,7 +16,7 @@
     <script src="./public/simple-window-manager.min.js"></script>
     <script>
         const wm = new WindowManager.WindowManager({ backgroundWindow: 'green' });
-
+        
         // enable window snapping to screen edges and other windows when moving
         wm.snap();
 
@@ -26,5 +26,6 @@
         // set content of window
         // _window.content.style.margin = '10px';
         _window.content.innerHTML = 'This is a nifty window.';
+        window.wm = wm;
     </script>
 </body>
