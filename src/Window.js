@@ -832,25 +832,17 @@ export class Window extends Events {
     _move = (e) => {
         const event = this._convertMoveEvent(e)
         const resizingState = this._getHitTestState(event, this._resizing);
-        // console.log(JSON.stringify(resizingState));
-        // console.log('sacce', e.changedTouches, resizingState)
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        } else {
-            // resizingState = this._resizing;
-            // this._resizing = null;
-            // this._prevPosition = null;
-        }
+        } 
 
-        // if (e.type === 'mousemove' || e.type === 'touchmove')
-        //     this._resizing = resizingState;
-        // else {
-        //     this._resizing = null;
-        //     this._prevPosition = null;
-        // }
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        } 
 
         if (resizingState == null) {
+            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
             this._prevPosition = null;
             this._resizing = null;
             return;
@@ -859,27 +851,22 @@ export class Window extends Events {
         if (resizingState.horizontal || resizingState.vertical) {
             if (!this._resizing)
                 this.emit('resize-start');
-
-            // this._resizing = resizingState;
-
+                
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
-                this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+                this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
             else
                 this.win.className += ` ${newClass}`;
 
-            // e.preventDefault();
             this._moving = false;
         } else {
-            // this._prevPosition = null; // todo clear
             this._moving = true;
-            // this._stopResize();
-            this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+
+            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
         }
 
         const dx = this._prevPosition ? event.pageX - this._prevPosition.x : null;
         const dy = this._prevPosition ? event.pageY - this._prevPosition.y : null;
-        // console.log('_move', dx, dy);
 
         this._prevPosition = {
             x: event.pageX,
@@ -911,7 +898,6 @@ export class Window extends Events {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
 
-            // console.log('move', dx, dy);
             this.move(
                 resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
                 resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
@@ -922,7 +908,6 @@ export class Window extends Events {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? -1 : 1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? -1 : 1;
 
-            // this.width + dx * xMutiplier;
             this.resize(
                 resizingState.horizontal ? this.width + dx * xMutiplier : this.width,
                 resizingState.vertical ? this.height + dy * yMutiplier : this.height,
