@@ -613,7 +613,8 @@ export class Window extends Events {
 
             this.headerToolbar = html({
                 parent: this.winTitlebar,
-                className: 'tool-bar'
+                className: 'tool-bar',
+                childElements: this.options.toolbarInstruments,
             });
 
             this._createButtons()
