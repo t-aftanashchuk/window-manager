@@ -849,7 +849,7 @@ export class Window extends Events {
         }
 
         if (dx == null || dy == null) {
-            return;
+            return resizingState != null;
         }
 
         if ((!this._isTouchEvent(e) && e.which !== 1)) {
@@ -894,6 +894,8 @@ export class Window extends Events {
             this.emit('resize', this);
             e.preventDefault();
         }
+
+        return resizingState != null;
     }
 
     _up() {

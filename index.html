@@ -22,10 +22,12 @@
 
         // create a window    
         const _window = wm.createWindow({ width: 500, height: 500, title: 'Test Window' });
+        const __window = wm.createWindow({ width: 200, height: 200, title: 'Test Window1' });
 
         // set content of window
         // _window.content.style.margin = '10px';
         _window.content.innerHTML = 'This is a nifty window.';
+        __window.content.innerHTML = 'This is a nifty window 1.';
         window.wm = wm;
     </script>
 </body>
