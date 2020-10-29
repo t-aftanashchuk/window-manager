@@ -810,18 +810,21 @@ export class Window extends Events {
             horizontal = null;
         }
 
-        if (horizontal || vertical)
+        if (horizontal || vertical) {
             return prevResizingState || {
                 horizontal,
                 vertical,
             }
-        else if (
-            event.pageX >= this.x &&
-            event.pageX <= (this.x + this.width) &&
-            event.pageY >= this.y &&
-            event.pageY <= (this.y + this.height)
-        ) return {};
+        }
 
+        var _offset = prevResizingState ? 10000 : 0;
+
+        if (
+            event.pageX >= (this.x - _offset) &&
+            event.pageX <= ((this.x + this.width + _offset)) &&
+            event.pageY >= (this.y - _offset) &&
+            event.pageY <= ((this.y + this.height + _offset))
+        ) return prevResizingState || {};
 
         return null;
     }
@@ -829,9 +832,27 @@ export class Window extends Events {
     _move = (e) => {
         const event = this._convertMoveEvent(e)
         const resizingState = this._getHitTestState(event, this._resizing);
+        // console.log(JSON.stringify(resizingState));
+        // console.log('sacce', e.changedTouches, resizingState)
+
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        } else {
+            // resizingState = this._resizing;
+            // this._resizing = null;
+            // this._prevPosition = null;
+        }
+
+        // if (e.type === 'mousemove' || e.type === 'touchmove')
+        //     this._resizing = resizingState;
+        // else {
+        //     this._resizing = null;
+        //     this._prevPosition = null;
+        // }
 
         if (resizingState == null) {
             this._prevPosition = null;
+            this._resizing = null;
             return;
         }
 
@@ -839,7 +860,7 @@ export class Window extends Events {
             if (!this._resizing)
                 this.emit('resize-start');
 
-            this._resizing = resizingState;
+            // this._resizing = resizingState;
 
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
@@ -848,6 +869,7 @@ export class Window extends Events {
                 this.win.className += ` ${newClass}`;
 
             // e.preventDefault();
+            this._moving = false;
         } else {
             // this._prevPosition = null; // todo clear
             this._moving = true;
@@ -865,10 +887,10 @@ export class Window extends Events {
         }
 
         if (dx == null || dy == null) {
-            return;
+            return resizingState != null;
         }
 
-        if (!this._isTouchEvent(e) && e.which !== 1) {
+        if ((!this._isTouchEvent(e) && e.which !== 1)) {
             if (this._moving) {
                 this._stopMove()
             }
@@ -877,9 +899,15 @@ export class Window extends Events {
             }
         }
 
-        console.log(JSON.stringify(resizingState))
-        if (this._resizing) {
+        else if (this._moving) {
+            this.move(
+                this.x + dx,
+                this.y + dy,
+            );
 
+            this.emit('move', this)
+            e.preventDefault()
+        } else if (this._resizing) {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
 
@@ -888,14 +916,6 @@ export class Window extends Events {
                 resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
                 resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
             );
-        } else if (this._moving) {
-            this.move(
-                this.x + dx,
-                this.y + dy,
-            );
-
-            this.emit('move', this)
-            e.preventDefault()
         }
 
         if (this._resizing) {
@@ -912,6 +932,8 @@ export class Window extends Events {
             this.emit('resize', this);
             e.preventDefault();
         }
+
+        return resizingState != null;
     }
 
     _up() {

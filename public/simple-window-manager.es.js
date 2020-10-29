@@ -1440,18 +1440,21 @@ class Window extends eventemitter3 {
             horizontal = null;
         }
 
-        if (horizontal || vertical)
+        if (horizontal || vertical) {
             return prevResizingState || {
                 horizontal,
                 vertical,
             }
-        else if (
-            event.pageX >= this.x &&
-            event.pageX <= (this.x + this.width) &&
-            event.pageY >= this.y &&
-            event.pageY <= (this.y + this.height)
-        ) return {};
+        }
 
+        var _offset = prevResizingState ? 10000 : 0;
+
+        if (
+            event.pageX >= (this.x - _offset) &&
+            event.pageX <= ((this.x + this.width + _offset)) &&
+            event.pageY >= (this.y - _offset) &&
+            event.pageY <= ((this.y + this.height + _offset))
+        ) return prevResizingState || {};
 
         return null;
     }
@@ -1459,9 +1462,23 @@ class Window extends eventemitter3 {
     _move = (e) => {
         const event = this._convertMoveEvent(e);
         const resizingState = this._getHitTestState(event, this._resizing);
+        // console.log(JSON.stringify(resizingState));
+        // console.log('sacce', e.changedTouches, resizingState)
+
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        }
+
+        // if (e.type === 'mousemove' || e.type === 'touchmove')
+        //     this._resizing = resizingState;
+        // else {
+        //     this._resizing = null;
+        //     this._prevPosition = null;
+        // }
 
         if (resizingState == null) {
             this._prevPosition = null;
+            this._resizing = null;
             return;
         }
 
@@ -1469,7 +1486,7 @@ class Window extends eventemitter3 {
             if (!this._resizing)
                 this.emit('resize-start');
 
-            this._resizing = resizingState;
+            // this._resizing = resizingState;
 
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
@@ -1478,10 +1495,11 @@ class Window extends eventemitter3 {
                 this.win.className += ` ${newClass}`;
 
             // e.preventDefault();
+            this._moving = false;
         } else {
             // this._prevPosition = null; // todo clear
             this._moving = true;
-            this._stopResize();
+            // this._stopResize();
             this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
         }
 
@@ -1495,10 +1513,10 @@ class Window extends eventemitter3 {
         };
 
         if (dx == null || dy == null) {
-            return;
+            return resizingState != null;
         }
 
-        if (!this._isTouchEvent(e) && e.which !== 1) {
+        if ((!this._isTouchEvent(e) && e.which !== 1)) {
             if (this._moving) {
                 this._stopMove();
             }
@@ -1507,9 +1525,15 @@ class Window extends eventemitter3 {
             }
         }
 
-        console.log(JSON.stringify(resizingState));
-        if (this._resizing) {
+        else if (this._moving) {
+            this.move(
+                this.x + dx,
+                this.y + dy,
+            );
 
+            this.emit('move', this);
+            e.preventDefault();
+        } else if (this._resizing) {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
 
@@ -1518,14 +1542,6 @@ class Window extends eventemitter3 {
                 resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
                 resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
             );
-        } else if (this._moving) {
-            this.move(
-                this.x + dx,
-                this.y + dy,
-            );
-
-            this.emit('move', this);
-            e.preventDefault();
         }
 
         if (this._resizing) {
@@ -1542,6 +1558,8 @@ class Window extends eventemitter3 {
             this.emit('resize', this);
             e.preventDefault();
         }
+
+        return resizingState != null;
     }
 
     _up() {
@@ -1957,8 +1975,7 @@ const windowManagerOptions = {
  * wm.createWindow({ x: 20, y: 20, width: 200 })
  * wm.content.innerHTML = 'Hello there!'
  */
-class WindowManager
-{
+class WindowManager {
     /**
      * @param {object} [options]
      * @param {HTMLElement} [options.parent=document.body]
@@ -1967,19 +1984,16 @@ class WindowManager
      * @param {(boolean|'horizontal'|'vertical')} [options.keepInside=true] keep windows inside the parent in a certain direction
      * @param {WindowOptions} [defaultOptions] default WindowOptions used when createWindow is called
      */
-    constructor(options={}, defaultOptions={})
-    {
+    constructor(options = {}, defaultOptions = {}) {
         this.windows = [];
         this.active = null;
         this.options = Object.assign({}, windowManagerOptions, options);
         this.defaultOptions = Object.assign({}, windowOptions, defaultOptions);
-        if (!this.options.quiet)
-        {
+        if (!this.options.quiet) {
             console.log('%c ☕ simple-window-manager initialized ☕', 'color: #ff00ff');
         }
         this._createDom(options.parent || document.body);
-        if (this.options.snap)
-        {
+        if (this.options.snap) {
             this.snap(this.options.snap === true ? {} : this.options.snap);
         }
         window.addEventListener('resize', () => this.resize());
@@ -1995,8 +2009,7 @@ class WindowManager
      * @param {(number|*)} [options.id] if not provide, id will be assigned in order of creation (0, 1, 2...)
      * @returns {Window} the created window
      */
-    createWindow(options={})
-    {
+    createWindow(options = {}) {
         const win = new Window(this, Object.assign({}, this.defaultOptions, options));
         win.on('open', () => this._open(win));
         win.on('focus', () => this._focus(win));
@@ -2006,13 +2019,11 @@ class WindowManager
         win.win.addEventListener('touchmove', (e) => this._move(e));
         win.win.addEventListener('mouseup', (e) => this._up(e));
         win.win.addEventListener('touchend', (e) => this._up(e));
-        if (this._snap && !options.noSnap)
-        {
+        if (this._snap && !options.noSnap) {
             this._snap.addWindow(win);
         }
         win.resizePlacement(this.bounds, this.options.keepInside);
-        if (win.options.openOnCreate)
-        {
+        if (win.options.openOnCreate) {
             win.open();
         }
         return win
@@ -2025,8 +2036,7 @@ class WindowManager
      * @param {Window} win
      * @returns {Window} the window
      */
-    attachWindow(win)
-    {
+    attachWindow(win) {
         win.on('open', this._open, this);
         win.on('focus', this._focus, this);
         win.on('blur', this._blur, this);
@@ -2037,8 +2047,7 @@ class WindowManager
         win.win.addEventListener('touchmove', (e) => this._move(e));
         win.win.addEventListener('mouseup', (e) => this._up(e));
         win.win.addEventListener('touchend', (e) => this._up(e));
-        if (this._snap && !this.defaultOptions.noSnap)
-        {
+        if (this._snap && !this.defaultOptions.noSnap) {
             this._snap.addWindow(win);
         }
         return win
@@ -2048,13 +2057,10 @@ class WindowManager
      * enable edge and/or screen snapping
      * @param {SnapOptions} options
      */
-    snap(options)
-    {
+    snap(options) {
         this._snap = new Snap(this, options);
-        for (let win of this.windows)
-        {
-            if (!win.options.noSnap)
-            {
+        for (let win of this.windows) {
+            if (!win.options.noSnap) {
                 this._snap.addWindow(win);
             }
         }
@@ -2064,12 +2070,10 @@ class WindowManager
      * send window to front
      * @param {Window} win
      */
-    sendToFront(win)
-    {
+    sendToFront(win) {
         const index = this.windows.indexOf(win);
         console.assert(index !== -1, 'sendToFront should find window in this.windows');
-        if (index !== this.windows.length - 1)
-        {
+        if (index !== this.windows.length - 1) {
             this.windows.splice(index, 1);
             this.windows.push(win);
             this._reorder();
@@ -2080,12 +2084,10 @@ class WindowManager
      * send window to back
      * @param {Window} win
      */
-    sendToBack(win)
-    {
+    sendToBack(win) {
         const index = this.windows.indexOf(win);
         console.assert(index !== -1, 'sendToFront should find window in this.windows');
-        if (index !== 0)
-        {
+        if (index !== 0) {
             this.windows.splice(index, 1);
             this.windows.unshift(win);
             this._reorder();
@@ -2096,11 +2098,9 @@ class WindowManager
      * save the state of all the windows
      * @returns {object} use this object in load() to restore the state of all windows
      */
-    save()
-    {
+    save() {
         const data = {};
-        for (let i = 0; i < this.windows.length; i++)
-        {
+        for (let i = 0; i < this.windows.length; i++) {
             const entry = this.windows[i];
             data[entry.id] = entry.save();
             data[entry.id].order = i;
@@ -2113,13 +2113,10 @@ class WindowManager
      * NOTE: this requires that the windows have the same id as when save() was called
      * @param {object} data created by save()
      */
-    load(data)
-    {
-        for (let i = 0; i < this.windows.length; i++)
-        {
+    load(data) {
+        for (let i = 0; i < this.windows.length; i++) {
             const entry = this.windows[i];
-            if (data[entry.id])
-            {
+            if (data[entry.id]) {
                 entry.load(data[entry.id]);
             }
         }
@@ -2129,10 +2126,8 @@ class WindowManager
     /**
      * close all windows
      */
-    closeAll()
-    {
-        for (let win of this.windows)
-        {
+    closeAll() {
+        for (let win of this.windows) {
             win.close();
         }
         this.windows = [];
@@ -2144,13 +2139,10 @@ class WindowManager
      * @private
      * @returns {number} available z-index for top window
      */
-    _reorder()
-    {
+    _reorder() {
         let i = 0;
-        for (const win of this.windows)
-        {
-            if (!win.isClosed())
-            {
+        for (const win of this.windows) {
+            if (!win.isClosed()) {
                 win.z = i++;
             }
         }
@@ -2159,8 +2151,7 @@ class WindowManager
     /**
      * @param {HTMLElement} parent
      */
-    _createDom(parent)
-    {
+    _createDom(parent) {
         /**
          * This is the top-level DOM element
          * @type {HTMLElement}
@@ -2220,35 +2211,28 @@ class WindowManager
         this.modalOverlay.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); });
     }
 
-    _open(win)
-    {
+    _open(win) {
         this.windows.push(win);
         this._reorder();
-        if (win.options.modal)
-        {
+        if (win.options.modal) {
             this.modalOverlay.style.display = 'block';
             this.modalOverlay.style.zIndex = win.z;
         }
-        else
-        {
+        else {
             this.modalOverlay.style.display = 'none';
         }
     }
 
-    _focus(win)
-    {
-        if (this.active === win)
-        {
+    _focus(win) {
+        if (this.active === win) {
             return
         }
-        if (this.active)
-        {
+        if (this.active) {
             this.active.blur();
         }
         const index = this.windows.indexOf(win);
         console.assert(index !== -1, 'WindowManager._focus should find window in this.windows');
-        if (index !== this.windows.length - 1)
-        {
+        if (index !== this.windows.length - 1) {
             this.windows.splice(index, 1);
             this.windows.push(win);
         }
@@ -2256,58 +2240,55 @@ class WindowManager
         this.active = this.windows[this.windows.length - 1];
     }
 
-    _blur(win)
-    {
-        if (this.active === win)
-        {
+    _blur(win) {
+        if (this.active === win) {
             this.active = null;
         }
     }
 
-    _close(win)
-    {
+    _close(win) {
         const index = this.windows.indexOf(win);
         console.assert(index !== -1, 'WindowManager._close should find window in this.windows');
         this.windows.splice(index, 1);
         const next = this.windows[this.windows.length - 1];
-        if (win.isModal(true))
-        {
-            if (next && next.isModal())
-            {
+        if (win.isModal(true)) {
+            if (next && next.isModal()) {
                 this.modalOverlay.style.zIndex = next.z;
             }
-            else
-            {
+            else {
                 this.modalOverlay.style.display = 'none';
             }
         }
         next.focus();
     }
 
-    _move(e)
-    {
-        for (const key in this.windows)
-        {
-            this.windows[key]._move(e);
+    _move(e) {
+        for (let i = this.windows.length - 1; i >= 0; i--) {
+            const win = this.windows[i];
+            const resizing = win._move(e);
+            if (resizing) {
+                const index = this.windows.indexOf(win);
+
+                this.windows.splice(index, 1);
+                this.windows.push(win);
+                break;
+            }
+            console.log(resizing);
         }
     }
 
-    _up(e)
-    {
-        for (const key in this.windows)
-        {
+    _up(e) {
+        for (const key in this.windows) {
             this.windows[key]._up(e);
         }
     }
 
-    checkModal(win)
-    {
+    checkModal(win) {
         return !this.modal || this.modal === win
     }
 
     /** @type {Bounds} */
-    get bounds()
-    {
+    get bounds() {
         return {
             top: this.win.offsetTop,
             bottom: this.win.offsetTop + this.win.offsetHeight,
@@ -2316,11 +2297,9 @@ class WindowManager
         }
     }
 
-    resize()
-    {
+    resize() {
         const bounds = this.bounds;
-        for (const key in this.windows)
-        {
+        for (const key in this.windows) {
             this.windows[key].resizePlacement(bounds, this.options.keepInside);
         }
     }
