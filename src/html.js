@@ -27,9 +27,8 @@ export function html(options = {}) {
         if (!Array.isArray(options.childElements))
             options.childElements = [options.childElements];
 
-        for (const child of options.childElements) {
+        for (const child of options.childElements)
             if (child) object.appendChild(child);
-        }
     }
     return object
 }
