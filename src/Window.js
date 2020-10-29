@@ -601,13 +601,14 @@ export class Window extends Events {
 
             this.frameManager = html({
                 parent: this.winTitlebar,
-                className: 'frame-manager'
+                className: 'frame-manager',
+                childElements: [this.options.frameManager],
             });
 
             this.headerTitle = html({
                 parent: this.winTitlebar,
                 html: this.options.title, 
-                className: 'title'
+                className: 'title',
             });
 
             this.headerToolbar = html({
