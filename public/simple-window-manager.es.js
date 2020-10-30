@@ -679,6 +679,40 @@ const ResizeDirections = {
     Right: 'right',
 };
 
+const demoHeaderStyles = {
+    'user-select': 'none',
+    'display': 'flex',
+    'flex-direction': 'row',
+    'align-items': 'center',
+    'justify-content': 'space-between',
+    'backgroundColor': 'yellowgreen',
+    'border': 0,
+    'padding': '0 8px',
+    'overflow': 'hidden',
+};
+
+const demoButtonStyles = {
+    'display': 'inline-block',
+    'border': 0,
+    'margin': 0,
+    'margin-left': '15px',
+    'padding': 0,
+    'width': '12px',
+    'height': '12px',
+    'background-color': 'transparent',
+    'background-size': 'cover',
+    'background-repeat': 'no-repeat',
+    'opacity': .7,
+    'outline': 0
+};
+
+const demoControlButtonsStyles = {
+    'display': 'flex',
+    'flex-direction': 'row',
+    'align-items': 'center',
+    'padding-left': '10px'
+};
+
 const RESIZE_PREFIX = 'resize';
 
 /**
@@ -1138,22 +1172,23 @@ class Window extends eventemitter3 {
          * @type {HTMLElement}
          * @readonly
          */
+        const winStyles = {
+            'user-select': 'none',
+            'overflow': 'hidden',
+            'position': 'absolute',
+            'min-width': this.options.minWidth,
+            'min-height': this.options.minHeight,
+            'width': isNaN(this.options.width) ? this.options.width : this.options.width + 'px',
+            'height': isNaN(this.options.height) ? this.options.height : this.options.height + 'px',
+            ...this.options.styles
+        };
+
         this.win = html({
-            parent: (this.wm ? this.wm.win : null), styles: {
-                'display': 'none',
-                'border-radius': this.options.borderRadius,
-                'user-select': 'none',
-                'overflow': 'hidden',
-                'position': 'absolute',
-                'min-width': this.options.minWidth,
-                'min-height': this.options.minHeight,
-                'box-shadow': this.options.shadow,
-                'background-color': this.options.backgroundWindow,
-                'width': isNaN(this.options.width) ? this.options.width : this.options.width + 'px',
-                'height': isNaN(this.options.height) ? this.options.height : this.options.height + 'px',
-                ...this.options.styles
-            },
-            className: this.options.classNames.win
+            parent: (this.wm ? this.wm.win : null), 
+            styles: winStyles,
+            className: this.options.classNames.win 
+                ? this.options.classNames.win + ' frame'
+                : 'frame'
         });
 
         this.winBox = html({
@@ -1162,9 +1197,12 @@ class Window extends eventemitter3 {
                 'flex-direction': 'column',
                 'width': '100%',
                 'height': '100%',
-                'min-height': this.options.minHeight
+                'min-height': this.options.minHeight,
+                'background-color': this.options.demo ? 'white' : null
             },
-            className: this.options.classNames.winBox
+            className: this.options.classNames.winBox 
+                ? this.options.classNames.winBox  + ' container'
+                : 'container'
         });
         this._createTitlebar();
 
@@ -1175,8 +1213,6 @@ class Window extends eventemitter3 {
          */
         this.content = html({
             parent: this.winBox, type: 'section', styles: {
-                'display': 'block',
-                'flex': 1,
                 'min-height': this.minHeight,
                 'overflow-x': 'hidden',
                 'overflow-y': 'auto'
@@ -1215,44 +1251,38 @@ class Window extends eventemitter3 {
     }
 
     _createTitlebar() {
+        const headerStyles = {
+            'user-select': 'none',
+            'display': 'flex',
+            'flex-direction': 'row',
+            'overflow': 'hidden',
+            'height': this.options.titlebarHeight,
+            'min-height': this.options.titlebarHeight,
+        };
+
         if (this.options.titlebar) {
             this.winTitlebar = html({
-                parent: this.winBox, type: 'header', styles: {
-                    'user-select': 'none',
-                    'display': 'flex',
-                    'flex-direction': 'row',
-                    'align-items': 'center',
-                    'justify-content': 'center',
-                    'height': this.options.titlebarHeight,
-                    'min-height': this.options.titlebarHeight,
-                    'border': 0,
-                    'padding': '0 8px',
-                    'overflow': 'hidden',
-                },
+                parent: this.winBox, type: 'header', 
+                styles: this.options.demo ? demoHeaderStyles : headerStyles, // DEVELOP
                 className: this.options.classNames.titlebar
             });
-            const winTitleStyles = {
-                'user-select': 'none',
-                'flex': 1,
-                'display': 'flex',
-                'flex-direction': 'row',
-                'align-items': 'center',
-                'user-select': 'none',
-                'cursor': 'default',
-                'padding': 0,
-                'margin': 0,
-                'font-size': '16px',
-                'font-weight': 400,
-                'color': this.options.foregroundTitle
-            };
-            if (this.options.titleCenter) {
-                winTitleStyles['justify-content'] = 'center';
-            }
-            else {
-                winTitleStyles['padding-left'] = '8px';
 
-            }
-            this.winTitle = html({ parent: this.winTitlebar, type: 'span', html: this.options.title, styles: winTitleStyles, className: this.options.classNames.winTitle });
+            this.frameManager = html({
+                parent: this.winTitlebar,
+                className: 'frame-manager'
+            });
+
+            this.headerTitle = html({
+                parent: this.winTitlebar,
+                html: this.options.title, 
+                className: 'title'
+            });
+
+            this.headerToolbar = html({
+                parent: this.winTitlebar,
+                className: 'tool-bar'
+            });
+
             this._createButtons();
 
             if (this.options.movable) {
@@ -1266,39 +1296,47 @@ class Window extends eventemitter3 {
     }
 
     _createButtons() {
+
         this.winButtonGroup = html({
-            parent: this.winTitlebar, styles: {
-                'display': 'flex',
-                'flex-direction': 'row',
-                'align-items': 'center',
-                'padding-left': '10px'
-            },
-            className: this.options.classNames.winButtonGroup
+            parent: this.winTitlebar,
+            className: 'control-bar',
+            styles: this.options.demo ? demoControlButtonsStyles : null, // DEVELOP
         });
-        const button = {
-            'display': 'inline-block',
-            'border': 0,
-            'margin': 0,
-            'margin-left': '15px',
-            'padding': 0,
-            'width': '12px',
-            'height': '12px',
-            'background-color': 'transparent',
-            'background-size': 'cover',
-            'background-repeat': 'no-repeat',
-            'opacity': .7,
-            'color': this.options.foregroundButton,
-            'outline': 0
-        };
+
         this.buttons = {};
+
+        if (this.options.minimizable) {
+            this.buttons.minimize = html({ 
+                parent: this.winButtonGroup, 
+                type: 'i', 
+                className: 'icon-minimize',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+            });
+            clicked(this.buttons.minimize, () => this.minimize());
+        }
+
         if (this.options.maximizable) {
-            this.buttons.maximize = html({ parent: this.winButtonGroup, html: this.options.maximizeButton, type: 'button', styles: button, className: this.options.maximize });
+            this.buttons.maximize = html({ 
+                parent: this.winButtonGroup, 
+                className: 'icon-maximaze',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+                html: this.options.demo ? this.options.maximizeButton : null, 
+                type: this.options.demo ? 'button' : 'i',
+            });
             clicked(this.buttons.maximize, () => this.maximize());
         }
+
         if (this.options.closable) {
-            this.buttons.close = html({ parent: this.winButtonGroup, html: this.options.closeButton, type: 'button', styles: button, className: this.options.close });
+            this.buttons.close = html({ 
+                parent: this.winButtonGroup, 
+                className: 'icon-delete',
+                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+                html: this.options.demo ? this.options.closeButton : null, 
+                type: this.options.demo ? 'button' : 'i',
+            });
             clicked(this.buttons.close, () => this.close());
         }
+
         for (let key in this.buttons) {
             const button = this.buttons[key];
             button.addEventListener('mousemove', () => {
@@ -1462,21 +1500,17 @@ class Window extends eventemitter3 {
     _move = (e) => {
         const event = this._convertMoveEvent(e);
         const resizingState = this._getHitTestState(event, this._resizing);
-        // console.log(JSON.stringify(resizingState));
-        // console.log('sacce', e.changedTouches, resizingState)
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        }
+        } 
 
-        // if (e.type === 'mousemove' || e.type === 'touchmove')
-        //     this._resizing = resizingState;
-        // else {
-        //     this._resizing = null;
-        //     this._prevPosition = null;
-        // }
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        } 
 
         if (resizingState == null) {
+            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
             this._prevPosition = null;
             this._resizing = null;
             return;
@@ -1485,27 +1519,22 @@ class Window extends eventemitter3 {
         if (resizingState.horizontal || resizingState.vertical) {
             if (!this._resizing)
                 this.emit('resize-start');
-
-            // this._resizing = resizingState;
-
+                
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
-                this.win.className = this.win.className.replace(/resize-.*/gi, newClass);
+                this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
             else
                 this.win.className += ` ${newClass}`;
 
-            // e.preventDefault();
             this._moving = false;
         } else {
-            // this._prevPosition = null; // todo clear
             this._moving = true;
-            // this._stopResize();
-            this.win.className = this.win.className.replace(/resize-.*\s/gi, '');
+
+            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
         }
 
         const dx = this._prevPosition ? event.pageX - this._prevPosition.x : null;
         const dy = this._prevPosition ? event.pageY - this._prevPosition.y : null;
-        // console.log('_move', dx, dy);
 
         this._prevPosition = {
             x: event.pageX,
@@ -1537,7 +1566,6 @@ class Window extends eventemitter3 {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? 1 : -1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? 1 : -1;
 
-            // console.log('move', dx, dy);
             this.move(
                 resizingState.horizontal == ResizeDirections.Left ? this.x + dx * xMutiplier : this.x,
                 resizingState.vertical == ResizeDirections.Up ? this.y + dy * yMutiplier : this.y
@@ -1548,7 +1576,6 @@ class Window extends eventemitter3 {
             const yMutiplier = resizingState.vertical === ResizeDirections.Up ? -1 : 1;
             const xMutiplier = resizingState.horizontal === ResizeDirections.Left ? -1 : 1;
 
-            // this.width + dx * xMutiplier;
             this.resize(
                 resizingState.horizontal ? this.width + dx * xMutiplier : this.width,
                 resizingState.vertical ? this.height + dy * yMutiplier : this.height,
@@ -1698,14 +1725,6 @@ const windowOptions = {
     closable: true,
 
     titlebar: true,
-    titlebarHeight: '2rem',
-
-    backgroundModal: 'rgba(0, 0, 0, 0.6)',
-    backgroundWindow: '#fefefe',
-    backgroundTitlebarActive: '#365d98',
-    backgroundTitlebarInactive: '#888888',
-    foregroundButton: '#ffffff',
-    foregroundTitle: '#ffffff',
 
     closeButton: close,
     maximizeButton: maximize,
