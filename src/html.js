@@ -6,26 +6,29 @@
  * @param {object} [options.styles]
  * @param {HTMLElement} [options.parent]
  * @param {string} [options.html]
+ * @param {[HTMLElement]} [options.childElements]
  * @returns {HTMLElement}
  */
-export function html(options={})
-{
+export function html(options = {}) {
     const object = document.createElement(options.type || 'div')
-    if (options.parent)
-    {
+    if (options.parent) {
         options.parent.appendChild(object)
     }
-    if (options.styles)
-    {
+    if (options.styles) {
         Object.assign(object.style, options.styles)
     }
-    if (options.className)
-    {
+    if (options.className) {
         object.className = options.className
     }
-    if (options.html)
-    {
+    if (options.html) {
         object.innerHTML = options.html
+    }
+    if (options.childElements) {
+        if (!Array.isArray(options.childElements))
+            options.childElements = [options.childElements];
+
+        for (const child of options.childElements)
+            if (child) object.appendChild(child);
     }
     return object
 }

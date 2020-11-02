@@ -601,18 +601,20 @@ export class Window extends Events {
 
             this.frameManager = html({
                 parent: this.winTitlebar,
-                className: 'frame-manager'
+                className: 'frame-manager',
+                childElements: [this.options.frameManager],
             });
 
             this.headerTitle = html({
                 parent: this.winTitlebar,
                 html: this.options.title, 
-                className: 'title'
+                className: 'title',
             });
 
             this.headerToolbar = html({
                 parent: this.winTitlebar,
-                className: 'tool-bar'
+                className: 'tool-bar',
+                childElements: this.options.toolbarInstruments,
             });
 
             this._createButtons()
@@ -832,6 +834,23 @@ export class Window extends Events {
     _move = (e) => {
         const event = this._convertMoveEvent(e)
         const resizingState = this._getHitTestState(event, this._resizing);
+        // console.log(JSON.stringify(resizingState));
+        // console.log('sacce', e.changedTouches, resizingState)
+
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        } else {
+            // resizingState = this._resizing;
+            // this._resizing = null;
+            // this._prevPosition = null;
+        }
+
+        // if (e.type === 'mousemove' || e.type === 'touchmove')
+        //     this._resizing = resizingState;
+        // else {
+        //     this._resizing = null;
+        //     this._prevPosition = null;
+        // }
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
@@ -851,13 +870,23 @@ export class Window extends Events {
         if (resizingState.horizontal || resizingState.vertical) {
             if (!this._resizing)
                 this.emit('resize-start');
+<<<<<<< HEAD
                 
+=======
+
+            // this._resizing = resizingState;
+
+>>>>>>> c4ca7ad34fc713c391f66d2645b0d2e1261fff59
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
                 this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
             else
                 this.win.className += ` ${newClass}`;
 
+<<<<<<< HEAD
+=======
+            // e.preventDefault();
+>>>>>>> c4ca7ad34fc713c391f66d2645b0d2e1261fff59
             this._moving = false;
         } else {
             this._moving = true;
