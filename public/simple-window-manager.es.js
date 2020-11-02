@@ -6,26 +6,29 @@
  * @param {object} [options.styles]
  * @param {HTMLElement} [options.parent]
  * @param {string} [options.html]
+ * @param {[HTMLElement]} [options.childElements]
  * @returns {HTMLElement}
  */
-function html(options={})
-{
+function html(options = {}) {
     const object = document.createElement(options.type || 'div');
-    if (options.parent)
-    {
+    if (options.parent) {
         options.parent.appendChild(object);
     }
-    if (options.styles)
-    {
+    if (options.styles) {
         Object.assign(object.style, options.styles);
     }
-    if (options.className)
-    {
+    if (options.className) {
         object.className = options.className;
     }
-    if (options.html)
-    {
+    if (options.html) {
         object.innerHTML = options.html;
+    }
+    if (options.childElements) {
+        if (!Array.isArray(options.childElements))
+            options.childElements = [options.childElements];
+
+        for (const child of options.childElements)
+            if (child) object.appendChild(child);
     }
     return object
 }
@@ -1269,18 +1272,20 @@ class Window extends eventemitter3 {
 
             this.frameManager = html({
                 parent: this.winTitlebar,
-                className: 'frame-manager'
+                className: 'frame-manager',
+                childElements: [this.options.frameManager],
             });
 
             this.headerTitle = html({
                 parent: this.winTitlebar,
                 html: this.options.title, 
-                className: 'title'
+                className: 'title',
             });
 
             this.headerToolbar = html({
                 parent: this.winTitlebar,
-                className: 'tool-bar'
+                className: 'tool-bar',
+                childElements: this.options.toolbarInstruments,
             });
 
             this._createButtons();
@@ -1500,6 +1505,19 @@ class Window extends eventemitter3 {
     _move = (e) => {
         const event = this._convertMoveEvent(e);
         const resizingState = this._getHitTestState(event, this._resizing);
+        // console.log(JSON.stringify(resizingState));
+        // console.log('sacce', e.changedTouches, resizingState)
+
+        if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
+            this._resizing = resizingState;
+        }
+
+        // if (e.type === 'mousemove' || e.type === 'touchmove')
+        //     this._resizing = resizingState;
+        // else {
+        //     this._resizing = null;
+        //     this._prevPosition = null;
+        // }
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
@@ -1519,13 +1537,15 @@ class Window extends eventemitter3 {
         if (resizingState.horizontal || resizingState.vertical) {
             if (!this._resizing)
                 this.emit('resize-start');
-                
+
+            // this._resizing = resizingState;
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
                 this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
             else
                 this.win.className += ` ${newClass}`;
 
+            // e.preventDefault();
             this._moving = false;
         } else {
             this._moving = true;
