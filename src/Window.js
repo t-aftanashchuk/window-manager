@@ -663,7 +663,7 @@ export class Window extends Events {
         if (this.options.closable) {
             this.buttons.close = html({ 
                 parent: this.winButtonGroup, 
-                className: this.options.deleteIconClass ? this.options.deleteIconClass : 'icon-delete-window',
+                className: this.options.closeIconClass ? this.options.closeIconClass : 'icon-close-window',
                 styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
                 html: this.options.demo ? this.options.closeButton : null, 
                 type: this.options.demo ? 'button' : 'i',
