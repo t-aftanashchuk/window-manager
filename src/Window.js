@@ -643,7 +643,7 @@ export class Window extends Events {
             this.buttons.minimize = html({ 
                 parent: this.winButtonGroup, 
                 type: 'i', 
-                className: 'icon-minimize',
+                className: this.options.minimizeIconClass ? this.options.minimizeIconClass : 'icon-minimize-window',
                 styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
             })
             clicked(this.buttons.minimize, () => this.minimize())
@@ -652,7 +652,7 @@ export class Window extends Events {
         if (this.options.maximizable) {
             this.buttons.maximize = html({ 
                 parent: this.winButtonGroup, 
-                className: 'icon-maximaze',
+                className: this.options.maximizeIconClass ? this.options.maximizeIconClass : 'icon-maximize-window',
                 styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
                 html: this.options.demo ? this.options.maximizeButton : null, 
                 type: this.options.demo ? 'button' : 'i',
@@ -663,7 +663,7 @@ export class Window extends Events {
         if (this.options.closable) {
             this.buttons.close = html({ 
                 parent: this.winButtonGroup, 
-                className: 'icon-delete',
+                className: this.options.deleteIconClass ? this.options.deleteIconClass : 'icon-delete-window',
                 styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
                 html: this.options.demo ? this.options.closeButton : null, 
                 type: this.options.demo ? 'button' : 'i',
