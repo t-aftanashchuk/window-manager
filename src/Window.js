@@ -831,7 +831,7 @@ export class Window extends Events {
         return null;
     }
 
-    _move = (e) => {
+    _move(e) {
         const event = this._convertMoveEvent(e)
         const resizingState = this._getHitTestState(event, this._resizing);
         // console.log(JSON.stringify(resizingState));
