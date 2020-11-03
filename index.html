@@ -30,6 +30,34 @@
         .resize-right-up {
             cursor: nesw-resize;
         }
+
+        
+        .frame .container {
+            background-color: white;
+            border: 2px solid black;
+        }
+
+        .frame .container header {
+            background-color: yellowgreen;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid black;
+        }
+
+        .frame .container header .control-bar button{
+            width: 24px;
+            height: 24px;
+            margin: 0 0 0 5px;
+            padding: 0;
+            border: none;
+            text-align: center;
+            background-color: transparent;
+        }
+
+        .frame .container header .control-bar button svg{
+            width: 16px;
+            height: 16px;
+        }
     </style>
 </head>
 <body>
@@ -41,8 +69,8 @@
         wm.snap();
 
         // create a window
-        const _window = wm.createWindow({  demo: true, width: 500, height: 500, title: 'Test Window' });
-        const __window = wm.createWindow({  demo: true, width: 200, height: 200, title: 'Test Window1' });
+        const _window = wm.createWindow({  width: 500, height: 500, title: 'Test Window' });
+        const __window = wm.createWindow({  width: 200, height: 200, title: 'Test Window1' });
 
         // set content of window
         // _window.content.style.margin = '10px';
