@@ -801,7 +801,10 @@ class Window extends eventemitter3 {
     }
 
     _buildTransform() {
-        this.win.style.transform = `translate(${this.options.x}px,${this.options.y}px)`;
+        const bounds = this.wm.bounds;
+        const top = bounds && bounds.top || 0;
+        const left = bounds && bounds.left || 0;
+        this.win.style.transform = `translate(${this.options.x - left}px,${this.options.y - top}px)`;
     }
 
     /**
@@ -1153,9 +1156,9 @@ class Window extends eventemitter3 {
         };
 
         this.win = html({
-            parent: (this.wm ? this.wm.win : null), 
+            parent: (this.wm ? this.wm.win : null),
             styles: winStyles,
-            className: this.options.classNames.win 
+            className: this.options.classNames.win
                 ? this.options.classNames.win + ' frame'
                 : 'frame'
         });
@@ -1169,8 +1172,8 @@ class Window extends eventemitter3 {
                 'min-height': this.options.minHeight,
                 'background-color': this.options.style
             },
-            className: this.options.classNames.winBox 
-                ? this.options.classNames.winBox  + ' container'
+            className: this.options.classNames.winBox
+                ? this.options.classNames.winBox + ' container'
                 : 'container'
         });
         this._createTitlebar();
@@ -1231,7 +1234,7 @@ class Window extends eventemitter3 {
 
         if (this.options.titlebar) {
             this.winTitlebar = html({
-                parent: this.winBox, type: 'header', 
+                parent: this.winBox, type: 'header',
                 styles: headerStyles,
                 className: this.options.classNames.titlebar
             });
@@ -1244,7 +1247,7 @@ class Window extends eventemitter3 {
 
             this.headerTitle = html({
                 parent: this.winTitlebar,
-                html: this.options.title, 
+                html: this.options.title,
                 className: 'title',
             });
 
@@ -1276,26 +1279,26 @@ class Window extends eventemitter3 {
         this.buttons = {};
 
         if (this.options.minimizable) {
-            this.buttons.minimize = html({ 
-                parent: this.winButtonGroup, 
-                type: 'button', 
+            this.buttons.minimize = html({
+                parent: this.winButtonGroup,
+                type: 'button',
                 html: this.options.minimizeButton,
             });
             clicked(this.buttons.minimize, () => this.minimize());
         }
 
         if (this.options.maximizable) {
-            this.buttons.maximize = html({ 
-                parent: this.winButtonGroup, 
-                html: this.options.maximizeButton, 
+            this.buttons.maximize = html({
+                parent: this.winButtonGroup,
+                html: this.options.maximizeButton,
                 type: 'button',
             });
             clicked(this.buttons.maximize, () => this.maximize());
         }
 
         if (this.options.closable) {
-            this.buttons.close = html({ 
-                parent: this.winButtonGroup, 
+            this.buttons.close = html({
+                parent: this.winButtonGroup,
                 html: this.options.closeButton,
                 type: 'button',
             });
@@ -1481,11 +1484,11 @@ class Window extends eventemitter3 {
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        } 
+        }
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        } 
+        }
 
         if (resizingState == null) {
             this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
@@ -1784,11 +1787,12 @@ class Snap
     {
         const width = document.body.clientWidth;
         const height = document.body.clientHeight;
+        const windowTop = this.wm.bounds.top || 0;
         if (rect.left - this.options.snap <= width && rect.right + this.options.snap >= 0)
         {
-            if (Math.abs(rect.top - 0) <= this.options.snap)
+            if (Math.abs(rect.top - windowTop) <= this.options.snap)
             {
-                horizontal.push({ distance: Math.abs(rect.top - 0), left: 0, width, top: 0, side: 'top', screen: true });
+                horizontal.push({ distance: Math.abs(rect.top - 0), left: 0, width, top: windowTop, side: 'top', screen: true });
             }
             else if (Math.abs(rect.bottom - height) <= this.options.snap)
             {
@@ -1799,11 +1803,11 @@ class Snap
         {
             if (Math.abs(rect.left - 0) <= this.options.snap)
             {
-                vertical.push({ distance: Math.abs(rect.left - 0), top: 0, height, left: 0, side: 'left', screen: true });
+                vertical.push({ distance: Math.abs(rect.left - 0), top: windowTop, height, left: 0, side: 'left', screen: true });
             }
             else if (Math.abs(rect.right - width) <= this.options.snap)
             {
-                vertical.push({ distance: Math.abs(rect.right - width), top: 0, height, left: width, side: 'right', screen: true });
+                vertical.push({ distance: Math.abs(rect.right - width), top: windowTop, height, left: width, side: 'right', screen: true });
             }
         }
     }

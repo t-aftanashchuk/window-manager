@@ -130,7 +130,10 @@ export class Window extends Events {
     }
 
     _buildTransform() {
-        this.win.style.transform = `translate(${this.options.x}px,${this.options.y}px)`
+        const bounds = this.wm.bounds;
+        const top = bounds && bounds.top || 0;
+        const left = bounds && bounds.left || 0;
+        this.win.style.transform = `translate(${this.options.x - left}px,${this.options.y - top}px)`
     }
 
     /**
@@ -482,9 +485,9 @@ export class Window extends Events {
         }
 
         this.win = html({
-            parent: (this.wm ? this.wm.win : null), 
+            parent: (this.wm ? this.wm.win : null),
             styles: winStyles,
-            className: this.options.classNames.win 
+            className: this.options.classNames.win
                 ? this.options.classNames.win + ' frame'
                 : 'frame'
         })
@@ -498,8 +501,8 @@ export class Window extends Events {
                 'min-height': this.options.minHeight,
                 'background-color': this.options.style
             },
-            className: this.options.classNames.winBox 
-                ? this.options.classNames.winBox  + ' container'
+            className: this.options.classNames.winBox
+                ? this.options.classNames.winBox + ' container'
                 : 'container'
         })
         this._createTitlebar()
@@ -560,7 +563,7 @@ export class Window extends Events {
 
         if (this.options.titlebar) {
             this.winTitlebar = html({
-                parent: this.winBox, type: 'header', 
+                parent: this.winBox, type: 'header',
                 styles: headerStyles,
                 className: this.options.classNames.titlebar
             })
@@ -573,7 +576,7 @@ export class Window extends Events {
 
             this.headerTitle = html({
                 parent: this.winTitlebar,
-                html: this.options.title, 
+                html: this.options.title,
                 className: 'title',
             });
 
@@ -605,26 +608,26 @@ export class Window extends Events {
         this.buttons = {}
 
         if (this.options.minimizable) {
-            this.buttons.minimize = html({ 
-                parent: this.winButtonGroup, 
-                type: 'button', 
+            this.buttons.minimize = html({
+                parent: this.winButtonGroup,
+                type: 'button',
                 html: this.options.minimizeButton,
             })
             clicked(this.buttons.minimize, () => this.minimize())
         }
 
         if (this.options.maximizable) {
-            this.buttons.maximize = html({ 
-                parent: this.winButtonGroup, 
-                html: this.options.maximizeButton, 
+            this.buttons.maximize = html({
+                parent: this.winButtonGroup,
+                html: this.options.maximizeButton,
                 type: 'button',
             })
             clicked(this.buttons.maximize, () => this.maximize())
         }
 
         if (this.options.closable) {
-            this.buttons.close = html({ 
-                parent: this.winButtonGroup, 
+            this.buttons.close = html({
+                parent: this.winButtonGroup,
                 html: this.options.closeButton,
                 type: 'button',
             })
@@ -814,11 +817,11 @@ export class Window extends Events {
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        } 
+        }
 
         if (!this._resizing && !this._isTouchEvent(e) && e.which === 1) {
             this._resizing = resizingState;
-        } 
+        }
 
         if (resizingState == null) {
             this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();

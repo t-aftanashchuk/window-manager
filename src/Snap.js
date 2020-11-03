@@ -68,11 +68,12 @@ export class Snap
     {
         const width = document.body.clientWidth
         const height = document.body.clientHeight
+        const windowTop = this.wm.bounds.top || 0;
         if (rect.left - this.options.snap <= width && rect.right + this.options.snap >= 0)
         {
-            if (Math.abs(rect.top - 0) <= this.options.snap)
+            if (Math.abs(rect.top - windowTop) <= this.options.snap)
             {
-                horizontal.push({ distance: Math.abs(rect.top - 0), left: 0, width, top: 0, side: 'top', screen: true })
+                horizontal.push({ distance: Math.abs(rect.top - 0), left: 0, width, top: windowTop, side: 'top', screen: true })
             }
             else if (Math.abs(rect.bottom - height) <= this.options.snap)
             {
@@ -83,11 +84,11 @@ export class Snap
         {
             if (Math.abs(rect.left - 0) <= this.options.snap)
             {
-                vertical.push({ distance: Math.abs(rect.left - 0), top: 0, height, left: 0, side: 'left', screen: true })
+                vertical.push({ distance: Math.abs(rect.left - 0), top: windowTop, height, left: 0, side: 'left', screen: true })
             }
             else if (Math.abs(rect.right - width) <= this.options.snap)
             {
-                vertical.push({ distance: Math.abs(rect.right - width), top: 0, height, left: width, side: 'right', screen: true })
+                vertical.push({ distance: Math.abs(rect.right - width), top: windowTop, height, left: width, side: 'right', screen: true })
             }
         }
     }
