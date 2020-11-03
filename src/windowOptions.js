@@ -1,4 +1,4 @@
-import { close, maximize, restore, resize } from './images'
+import { close, maximize, restore, resize, minimize } from './images'
 
 /**
  * @typedef {object} WindowOptions
@@ -51,6 +51,7 @@ export const windowOptions = {
     movable: true,
     resizable: true,
     maximizable: true,
+    minimizable: true,
     closable: true,
 
     titlebar: true,
@@ -58,6 +59,7 @@ export const windowOptions = {
     closeButton: close,
     maximizeButton: maximize,
     restoreButton: restore,
+    minimizeButton: minimize,
 
     backgroundResize: resize
 }

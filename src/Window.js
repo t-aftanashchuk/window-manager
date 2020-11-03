@@ -11,40 +11,6 @@ const ResizeDirections = {
     Right: 'right',
 }
 
-const demoHeaderStyles = {
-    'user-select': 'none',
-    'display': 'flex',
-    'flex-direction': 'row',
-    'align-items': 'center',
-    'justify-content': 'space-between',
-    'backgroundColor': 'yellowgreen',
-    'border': 0,
-    'padding': '0 8px',
-    'overflow': 'hidden',
-}
-
-const demoButtonStyles = {
-    'display': 'inline-block',
-    'border': 0,
-    'margin': 0,
-    'margin-left': '15px',
-    'padding': 0,
-    'width': '12px',
-    'height': '12px',
-    'background-color': 'transparent',
-    'background-size': 'cover',
-    'background-repeat': 'no-repeat',
-    'opacity': .7,
-    'outline': 0
-}
-
-const demoControlButtonsStyles = {
-    'display': 'flex',
-    'flex-direction': 'row',
-    'align-items': 'center',
-    'padding-left': '10px'
-}
-
 const RESIZE_PREFIX = 'resize'
 
 /**
@@ -530,7 +496,7 @@ export class Window extends Events {
                 'width': '100%',
                 'height': '100%',
                 'min-height': this.options.minHeight,
-                'background-color': this.options.demo ? 'white' : null
+                'background-color': this.options.style
             },
             className: this.options.classNames.winBox 
                 ? this.options.classNames.winBox  + ' container'
@@ -595,7 +561,7 @@ export class Window extends Events {
         if (this.options.titlebar) {
             this.winTitlebar = html({
                 parent: this.winBox, type: 'header', 
-                styles: this.options.demo ? demoHeaderStyles : headerStyles, // DEVELOP
+                styles: headerStyles,
                 className: this.options.classNames.titlebar
             })
 
@@ -634,7 +600,6 @@ export class Window extends Events {
         this.winButtonGroup = html({
             parent: this.winTitlebar,
             className: 'control-bar',
-            styles: this.options.demo ? demoControlButtonsStyles : null, // DEVELOP
         });
 
         this.buttons = {}
@@ -642,9 +607,8 @@ export class Window extends Events {
         if (this.options.minimizable) {
             this.buttons.minimize = html({ 
                 parent: this.winButtonGroup, 
-                type: 'i', 
-                className: this.options.minimizeIconClass ? this.options.minimizeIconClass : 'icon-minimize-window',
-                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
+                type: 'button', 
+                html: this.options.minimizeButton,
             })
             clicked(this.buttons.minimize, () => this.minimize())
         }
@@ -652,10 +616,8 @@ export class Window extends Events {
         if (this.options.maximizable) {
             this.buttons.maximize = html({ 
                 parent: this.winButtonGroup, 
-                className: this.options.maximizeIconClass ? this.options.maximizeIconClass : 'icon-maximize-window',
-                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
-                html: this.options.demo ? this.options.maximizeButton : null, 
-                type: this.options.demo ? 'button' : 'i',
+                html: this.options.maximizeButton, 
+                type: 'button',
             })
             clicked(this.buttons.maximize, () => this.maximize())
         }
@@ -663,10 +625,8 @@ export class Window extends Events {
         if (this.options.closable) {
             this.buttons.close = html({ 
                 parent: this.winButtonGroup, 
-                className: this.options.closeIconClass ? this.options.closeIconClass : 'icon-close-window',
-                styles: this.options.demo ? demoButtonStyles : null, // DEVELOP
-                html: this.options.demo ? this.options.closeButton : null, 
-                type: this.options.demo ? 'button' : 'i',
+                html: this.options.closeButton,
+                type: 'button',
             })
             clicked(this.buttons.close, () => this.close())
         }
