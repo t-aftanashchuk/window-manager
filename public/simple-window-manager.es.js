@@ -1539,6 +1539,7 @@ class Window extends eventemitter3 {
                 this.emit('resize-start');
 
             // this._resizing = resizingState;
+
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
                 this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
@@ -1549,8 +1550,8 @@ class Window extends eventemitter3 {
             this._moving = false;
         } else {
             this._moving = true;
-
-            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '').trim();
+            // this._stopResize();
+            this.win.className = this.win.className.replace(/resize-.*\s?/gi, '');
         }
 
         const dx = this._prevPosition ? event.pageX - this._prevPosition.x : null;

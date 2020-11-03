@@ -872,6 +872,7 @@ export class Window extends Events {
                 this.emit('resize-start');
 
             // this._resizing = resizingState;
+
             const newClass = [RESIZE_PREFIX, resizingState.horizontal, resizingState.vertical].filter(Boolean).join('-');
             if (this.win.className.includes(RESIZE_PREFIX))
                 this.win.className = this.win.className.replace(/resize-.*\s?/gi, newClass).trim();
